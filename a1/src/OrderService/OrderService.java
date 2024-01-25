@@ -1,6 +1,7 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -8,9 +9,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,23 +17,27 @@ public class OrderService {
     public static int iscsPort = -1;
 
     public static void main(String[] args) throws IOException {
+        //Read config.json
         String path = "../../".concat(args[0]);
         String jsonString = "";
-
-        //Read config.json
-        try {
-            jsonString = new String(Files.readAllBytes(Paths.get(path)));
-        } catch(Exception e){
-            System.out.println(e.getMessage());
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Process each line
+                jsonString = jsonString.concat(line);
+                jsonString = jsonString.replace(" ","");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         //Map representing config.json
-        Map<String, String> config = parseJson(jsonString);
+        JSONObject jsonObject = new JSONObject(jsonString);
 
-        iscsPort = Integer.parseInt(parseJson(config.get("InterServiceCommunication")).get("port"));
-        iscsIp = parseJson(config.get("InterServiceCommunication")).get("ip");
+        iscsPort = jsonObject.getJSONObject("InterServiceCommunication").getInt("port");
+        iscsIp = (String) jsonObject.getJSONObject("InterServiceCommunication").get("ip");
 
-        int port = Integer.parseInt(parseJson(config.get("OrderService")).get("port"));
+        int port = jsonObject.getJSONObject("OrderService").getInt("port");
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         // Set up context for /order POST request
@@ -226,25 +228,6 @@ public class OrderService {
         os.close();
     }
 
-    public static Map<String, String> parseJson(String jsonString) {
-        Map<String, String> jsonMap = new HashMap<>();
-        String[] keyValuePairs = jsonString
-                .replace("{", "")
-                .replace("}", "")
-                .split(",");
-
-        for (String pair : keyValuePairs) {
-            String[] entry = pair.split(":");
-            if (entry.length == 2) {
-                String key = entry[0].trim();
-                String value = entry[1].trim();
-                jsonMap.put(key, value);
-            }
-        }
-
-        return jsonMap;
-    }
-
     private static String sendGetRequest(String url) throws Exception {
         URI apiUri = new URI(url);
         URL apiUrl = apiUri.toURL();
@@ -269,7 +252,7 @@ public class OrderService {
         connection.setDoOutput(true);
 
         try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = postData.getBytes("utf-8");
+            byte[] input = postData.getBytes(StandardCharsets.UTF_8);
             os.write(input, 0, input.length);
         }
 
