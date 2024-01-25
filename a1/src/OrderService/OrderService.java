@@ -231,7 +231,6 @@ public class OrderService {
         String[] keyValuePairs = jsonString
                 .replace("{", "")
                 .replace("}", "")
-                .replace("\n", "")
                 .split(",");
 
         for (String pair : keyValuePairs) {
