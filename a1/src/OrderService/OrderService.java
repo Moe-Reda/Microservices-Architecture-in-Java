@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -246,7 +247,8 @@ public class OrderService {
     }
 
     private static String sendGetRequest(String url) throws Exception {
-        URL apiUrl = new URL(url);
+        URI apiUri = new URI(url);
+        URL apiUrl = apiUri.toURL();
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
         connection.setRequestMethod("GET");
 
@@ -261,7 +263,8 @@ public class OrderService {
     }
 
     private static String sendPostRequest(String url, String postData) throws Exception {
-        URL apiUrl = new URL(url);
+        URI apiUri = new URI(url);
+        URL apiUrl = apiUri.toURL();
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
