@@ -19,7 +19,7 @@ public class OrderService {
     public static int iscsPort = -1;
 
     public static void main(String[] args) throws IOException {
-        String path = "../../".concat(args[2]);
+        String path = "../../".concat(args[0]);
         String jsonString = "";
 
         //Read config.json
