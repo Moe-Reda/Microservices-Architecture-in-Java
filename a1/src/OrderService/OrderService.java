@@ -125,6 +125,10 @@ public class OrderService {
     static class OrderHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            //Print client info
+            printClientInfo(exchange);
+
+
             // Handle POST request for /test
             String response = "Lecture foobar foobar Received request for /user";
 
@@ -153,6 +157,9 @@ public class OrderService {
     static class UserHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            //Print client info for debugging
+            printClientInfo(exchange);
+
             // Handle POST request for /test
             String response = "Lecture foobar foobar Received request for /user";
             String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
@@ -174,10 +181,6 @@ public class OrderService {
                 }
             }
 
-
-            //Print client info
-            printClientInfo(exchange);
-
             sendResponse(exchange, response);
 
 
@@ -188,6 +191,10 @@ public class OrderService {
     static class ProductHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            //Print client info
+            printClientInfo(exchange);
+
+
             String response = "Lecture foobar foobar Received request for /product";
 
             String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/product");
@@ -211,9 +218,6 @@ public class OrderService {
                     throw new RuntimeException(e);
                 }
             }
-
-            //Print client info
-            printClientInfo(exchange);
 
             //Send a response to the client
             sendResponse(exchange, response);
