@@ -69,7 +69,7 @@ def main():
         with open(requests_file, 'r') as file:
             for line in file:
                 command = line.split()
-                endpoint = command[0].lower
+                endpoint = command[0].lower()
                 send_request(api_url + endpoint, command)
     except FileNotFoundError:
         print(f"Error: Requests file '{requests_file}' not found.")
