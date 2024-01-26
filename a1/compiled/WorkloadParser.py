@@ -23,8 +23,7 @@ def format_data(data):
         data = {
             'command': data[1],
             'product_id': data[2],
-            'user_id': data[3],
-            'quantity': data[4]
+            'quantity': data[3],
         }
 
 def read_config(config_file):
@@ -42,7 +41,7 @@ def read_config(config_file):
 def send_request(api_url, request):
     try:
         if request[1] in ['info', 'get']:
-            response = requests.get(api_url + str(request[2]))
+            response = requests.get(api_url + "/" + str(request[2]))
         else:
             data = format_data(request)
             response = requests.post(api_url, data=data)
