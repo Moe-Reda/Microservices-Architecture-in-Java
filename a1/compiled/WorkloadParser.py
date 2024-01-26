@@ -62,7 +62,7 @@ def main():
     config = read_config(config_file)
 
     # Construct API URL
-    api_url = f"http://{config['OrderService']['ip_address']}:{config['OrderService']['port']}/"
+    api_url = f"http://{config['OrderService']['ip']}:{config['OrderService']['port']}/"
 
     # Read requests from file and send them to the API
     try:
