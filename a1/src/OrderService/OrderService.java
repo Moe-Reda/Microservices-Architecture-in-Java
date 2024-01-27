@@ -35,7 +35,7 @@ public class OrderService {
         JSONObject jsonObject = new JSONObject(jsonString);
 
         iscsPort = jsonObject.getJSONObject("InterServiceCommunication").getInt("port");
-        iscsIp = (String) jsonObject.getJSONObject("InterServiceCommunication").get("ip");
+        iscsIp = jsonObject.getJSONObject("InterServiceCommunication").get("ip").toString();
 
         int port = jsonObject.getJSONObject("OrderService").getInt("port");
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -130,24 +130,7 @@ public class OrderService {
 
 
             // Handle POST request for /test
-            String response = "Lecture foobar foobar Received request for /user";
-
-
-            String clientAddress = exchange.getRemoteAddress().getAddress().toString();
-            String requestMethod = exchange.getRequestMethod();
-            String requestURI = exchange.getRequestURI().toString();
-            Map<String, List<String>> requestHeaders = exchange.getRequestHeaders();
-
-            System.out.println("Client Address: " + clientAddress);
-            System.out.println("Request Method: " + requestMethod);
-            System.out.println("Request URI: " + requestURI);
-            System.out.println("Request Headers: " + requestHeaders);
-            // Print all request headers
-            //for (Map.Entry<String, List<String>> header : requestHeaders.entrySet()) {
-            //   System.out.println(header.getKey() + ": " + header.getValue().getFirst());
-            //}
-
-            System.out.println("Request Body: " + getRequestBody(exchange));
+            String response = "Received request for /order";
 
             sendResponse(exchange, response);
         }
@@ -161,14 +144,14 @@ public class OrderService {
             printClientInfo(exchange);
 
             // Handle POST request for /test
-            String response = "Lecture foobar foobar Received request for /user";
+            String response = "Received request for /user";
             String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
-                    String url = iscsUserUrl.concat("/").concat(params);
+                    String url = iscsUserUrl.concat(params);
                     response = sendGetRequest(url);
                 } catch (Exception e) {
                     sendResponse(exchange, response);
@@ -197,7 +180,7 @@ public class OrderService {
             printClientInfo(exchange);
 
 
-            String response = "Lecture foobar foobar Received request for /product";
+            String response = "Received request for /product";
 
             String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/product");
             // Handle GET request for /product
@@ -206,7 +189,7 @@ public class OrderService {
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
-                    String url = iscsUserUrl.concat("/").concat(params);
+                    String url = iscsUserUrl.concat(params);
                     response = sendGetRequest(url);
                 } catch (Exception e) {
                     sendResponse(exchange, response);

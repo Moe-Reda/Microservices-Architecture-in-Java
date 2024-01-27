@@ -122,7 +122,7 @@ public class ISCS {
             printClientInfo(exchange);
 
             // Handle POST request for /test
-            String response = "Lecture foobar foobar Received request for /user";
+            String response = "Received request for /user";
             String userIP = jsonObject.getJSONObject("UserService").get("ip").toString();
             int userPort = jsonObject.getJSONObject("UserService").getInt("port");
             String UserServiceUrl = userIP.concat(":").concat(String.valueOf(userPort)).concat("/user");
@@ -131,7 +131,7 @@ public class ISCS {
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
-                    String url = UserServiceUrl.concat("/").concat(params);
+                    String url = UserServiceUrl.concat(params);
                     response = sendGetRequest(url);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -167,7 +167,7 @@ public class ISCS {
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
-                    String url = productServiceUrl.concat("/").concat(params);
+                    String url = productServiceUrl.concat(params);
                     response = sendGetRequest(url);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
