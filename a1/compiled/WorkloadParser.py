@@ -25,6 +25,7 @@ def format_data(data):
             'product_id': data[2],
             'quantity': data[3],
         }
+    return data
 
 def read_config(config_file):
     try:
@@ -42,7 +43,7 @@ def send_request(api_url, request):
     try:
         headers = requests.utils.default_headers()
         if request[1] in ['info', 'get']:
-            response = requests.get(api_url + "/" + str(request[2]))
+            response = requests.get(api_url + "/" + str(request[2]), headers=headers)
         else:
             data = format_data(request)
             response = requests.post(api_url, data=data, headers=headers)
