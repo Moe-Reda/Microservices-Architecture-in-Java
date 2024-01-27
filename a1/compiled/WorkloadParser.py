@@ -40,11 +40,12 @@ def read_config(config_file):
 
 def send_request(api_url, request):
     try:
+        headers = requests.utils.default_headers()
         if request[1] in ['info', 'get']:
             response = requests.get(api_url + "/" + str(request[2]))
         else:
             data = format_data(request)
-            response = requests.post(api_url, data=data)
+            response = requests.post(api_url, data=data, headers=headers)
         print(f"Request: {request.strip()} | Response: {response.text}")
     except requests.RequestException as e:
         print(f"Error sending request: {e}")

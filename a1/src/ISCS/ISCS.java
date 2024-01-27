@@ -12,9 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-public class OrderService {
-    public static String iscsIp = "";
-    public static int iscsPort = -1;
+public class ISCS {
+    static JSONObject jsonObject = new JSONObject();
 
     public static void main(String[] args) throws IOException {
         //Read config.json
@@ -34,14 +33,8 @@ public class OrderService {
         //Map representing config.json
         JSONObject jsonObject = new JSONObject(jsonString);
 
-        iscsPort = jsonObject.getJSONObject("InterServiceCommunication").getInt("port");
-        iscsIp = (String) jsonObject.getJSONObject("InterServiceCommunication").get("ip");
-
-        int port = jsonObject.getJSONObject("OrderService").getInt("port");
+        int port = jsonObject.getJSONObject("InterServiceCommunication").getInt("port");
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-
-        // Set up context for /order POST request
-        server.createContext("/order", new OrderHandler());
 
         // Set up context for /user request
         server.createContext("/user", new UserHandler());
@@ -122,38 +115,6 @@ public class OrderService {
         }
     }
 
-    static class OrderHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            //Print client info
-            printClientInfo(exchange);
-
-
-            // Handle POST request for /test
-            String response = "Lecture foobar foobar Received request for /user";
-
-
-            String clientAddress = exchange.getRemoteAddress().getAddress().toString();
-            String requestMethod = exchange.getRequestMethod();
-            String requestURI = exchange.getRequestURI().toString();
-            Map<String, List<String>> requestHeaders = exchange.getRequestHeaders();
-
-            System.out.println("Client Address: " + clientAddress);
-            System.out.println("Request Method: " + requestMethod);
-            System.out.println("Request URI: " + requestURI);
-            System.out.println("Request Headers: " + requestHeaders);
-            // Print all request headers
-            //for (Map.Entry<String, List<String>> header : requestHeaders.entrySet()) {
-            //   System.out.println(header.getKey() + ": " + header.getValue().getFirst());
-            //}
-
-            System.out.println("Request Body: " + getRequestBody(exchange));
-
-            sendResponse(exchange, response);
-        }
-
-    }
-
     static class UserHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -162,23 +123,23 @@ public class OrderService {
 
             // Handle POST request for /test
             String response = "Lecture foobar foobar Received request for /user";
-            String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
+            String userIP = jsonObject.getJSONObject("UserService").get("ip").toString();
+            int userPort = jsonObject.getJSONObject("UserService").getInt("port");
+            String UserServiceUrl = userIP.concat(":").concat(String.valueOf(userPort)).concat("/user");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
-                    String url = iscsUserUrl.concat("/").concat(params);
+                    String url = UserServiceUrl.concat("/").concat(params);
                     response = sendGetRequest(url);
                 } catch (Exception e) {
-                    sendResponse(exchange, response);
                     throw new RuntimeException(e);
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
-                    response = sendPostRequest(iscsUserUrl, exchange.getRequestBody().toString());
+                    response = sendPostRequest(UserServiceUrl, exchange.getRequestBody().toString());
                 } catch (Exception e) {
-                    sendResponse(exchange, response);
                     throw new RuntimeException(e);
                 }
             }
@@ -193,37 +154,32 @@ public class OrderService {
     static class ProductHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            //Print client info
+            //Print client info for debugging
             printClientInfo(exchange);
 
-
-            String response = "Lecture foobar foobar Received request for /product";
-
-            String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/product");
-            // Handle GET request for /product
+            // Handle POST request for /test
+            String response = "Lecture foobar foobar Received request for /user";
+            String productIP = jsonObject.getJSONObject("ProductService").get("ip").toString();
+            int productPort = jsonObject.getJSONObject("ProductService").getInt("port");
+            String productServiceUrl = productIP.concat(":").concat(String.valueOf(productPort)).concat("/user");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
-                    String url = iscsUserUrl.concat("/").concat(params);
+                    String url = productServiceUrl.concat("/").concat(params);
                     response = sendGetRequest(url);
                 } catch (Exception e) {
-                    sendResponse(exchange, response);
                     throw new RuntimeException(e);
                 }
-            }
-            // Handle POST request for /product
-            else if("POST".equals(exchange.getRequestMethod())){
+            } else if("POST".equals(exchange.getRequestMethod())){
                 try {
-                    response = sendPostRequest(iscsUserUrl, exchange.getRequestBody().toString());
+                    response = sendPostRequest(productServiceUrl, exchange.getRequestBody().toString());
                 } catch (Exception e) {
-                    sendResponse(exchange, response);
                     throw new RuntimeException(e);
                 }
             }
 
-            //Send a response to the client
             sendResponse(exchange, response);
 
         }
