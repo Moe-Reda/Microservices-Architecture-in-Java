@@ -155,15 +155,17 @@ public class OrderService {
                     String url = iscsUserUrl.concat(params);
                     response = sendGetRequest(url);
                 } catch (Exception e) {
-                    System.out.println("It is a POST request for user");
                     sendResponse(exchange, response);
+                    System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
+                    System.out.println("It is a POST request for user");
                     response = sendPostRequest(iscsUserUrl, exchange.getRequestBody().toString());
                 } catch (Exception e) {
                     sendResponse(exchange, response);
+                    System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
@@ -196,6 +198,7 @@ public class OrderService {
                     response = sendGetRequest(url);
                 } catch (Exception e) {
                     sendResponse(exchange, response);
+                    System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
@@ -206,6 +209,7 @@ public class OrderService {
                     response = sendPostRequest(iscsUserUrl, exchange.getRequestBody().toString());
                 } catch (Exception e) {
                     sendResponse(exchange, response);
+                    System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
