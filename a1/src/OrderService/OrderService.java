@@ -222,6 +222,7 @@ public class OrderService {
     private static String sendGetRequest(String url) throws Exception {
         URI apiUri = new URI(url);
         URL apiUrl = apiUri.toURL();
+        System.out.println("Connecting to: " + url);
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
         connection.setRequestMethod("GET");
 
@@ -238,6 +239,7 @@ public class OrderService {
     private static String sendPostRequest(String url, String postData) throws Exception {
         URI apiUri = new URI(url);
         URL apiUrl = apiUri.toURL();
+        System.out.println("Connecting to: " + url);
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
