@@ -228,7 +228,7 @@ public class OrderService {
     }
 
     private static String sendGetRequest(String url) throws Exception {
-        URI apiUri = new URI(url);
+        URI apiUri = new URI("http://".concat(url));
         URL apiUrl = apiUri.toURL();
         System.out.println("Connecting to: " + url);
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
@@ -245,7 +245,7 @@ public class OrderService {
     }
 
     private static String sendPostRequest(String url, String postData) throws Exception {
-        URI apiUri = new URI(url);
+        URI apiUri = new URI("http://".concat(url));
         URL apiUrl = apiUri.toURL();
         System.out.println("Connecting to: " + url);
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
