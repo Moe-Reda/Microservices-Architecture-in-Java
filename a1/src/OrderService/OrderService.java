@@ -148,12 +148,14 @@ public class OrderService {
             String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
+                    System.out.println("It is a GET request for user");
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
                     String url = iscsUserUrl.concat(params);
                     response = sendGetRequest(url);
                 } catch (Exception e) {
+                    System.out.println("It is a POST request for user");
                     sendResponse(exchange, response);
                     throw new RuntimeException(e);
                 }
@@ -186,6 +188,7 @@ public class OrderService {
             // Handle GET request for /product
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
+                    System.out.println("It is a GET request for product");
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
@@ -199,6 +202,7 @@ public class OrderService {
             // Handle POST request for /product
             else if("POST".equals(exchange.getRequestMethod())){
                 try {
+                    System.out.println("It is a POST request for product");
                     response = sendPostRequest(iscsUserUrl, exchange.getRequestBody().toString());
                 } catch (Exception e) {
                     sendResponse(exchange, response);
