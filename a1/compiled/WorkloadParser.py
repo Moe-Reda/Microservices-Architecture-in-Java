@@ -47,7 +47,7 @@ def send_request(api_url, request):
         else:
             data = format_data(request)
             response = requests.post(api_url, data=data, headers=headers)
-        print(f"Request: {request.strip()} | Response: {response.text}")
+        print(f"Request: {request} | Response: {response.text}")
     except requests.RequestException as e:
         print(f"Error sending request: {e}")
 
