@@ -85,6 +85,10 @@ public class ISCS {
                 }
             }
 
+            if(responseMap.get("rcode") == null){
+                responseMap.put("rcode", "500");
+            }
+
             sendResponse(exchange, responseMap);
 
 
@@ -125,6 +129,10 @@ public class ISCS {
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
+            }
+
+            if(responseMap.get("rcode") == null){
+                responseMap.put("rcode", "500");
             }
 
             sendResponse(exchange, responseMap);
