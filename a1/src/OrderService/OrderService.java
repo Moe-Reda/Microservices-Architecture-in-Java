@@ -215,8 +215,8 @@ public class OrderService {
     }
 
     private static void sendResponse(HttpExchange exchange, Map<String, String> responseMap) throws IOException {
-        int rcode = Integer.parseInt(responseMap.get("rcode"));
         System.out.println("The response code is: " + responseMap.get("rcode"));
+        int rcode = Integer.parseInt(responseMap.get("rcode"));
         responseMap.remove("rcode");
         System.out.println("The response is: " + responseMap.toString());
         exchange.sendResponseHeaders(rcode, responseMap.toString().length());
