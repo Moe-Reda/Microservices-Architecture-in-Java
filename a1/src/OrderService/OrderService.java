@@ -144,6 +144,7 @@ public class OrderService {
             // Handle POST request for /test
             String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
             Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a GET request for user");
@@ -168,10 +169,6 @@ public class OrderService {
                 }
             }
 
-            if(responseMap.get("rcode") == null){
-                responseMap.put("rcode", "500");
-            }
-
             sendResponse(exchange, responseMap);
 
 
@@ -188,6 +185,7 @@ public class OrderService {
             // Handle POST request for /test
             String iscsproductUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/product");
             Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a GET request for product");
@@ -210,10 +208,6 @@ public class OrderService {
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
-            }
-
-            if(responseMap.get("rcode") == null){
-                responseMap.put("rcode", "500");
             }
 
             sendResponse(exchange, responseMap);

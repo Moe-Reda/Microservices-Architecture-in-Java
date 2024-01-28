@@ -61,6 +61,7 @@ public class ISCS {
             int userPort = jsonObject.getJSONObject("UserService").getInt("port");
             String UserServiceUrl = userIP.concat(":").concat(String.valueOf(userPort)).concat("/user");
             Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a GET request for user");
@@ -85,10 +86,6 @@ public class ISCS {
                 }
             }
 
-            if(responseMap.get("rcode") == null){
-                responseMap.put("rcode", "500");
-            }
-
             sendResponse(exchange, responseMap);
 
 
@@ -107,6 +104,7 @@ public class ISCS {
             int productPort = jsonObject.getJSONObject("ProductService").getInt("port");
             String productServiceUrl = productIP.concat(":").concat(String.valueOf(productPort)).concat("/user");
             Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a GET request for product");
@@ -129,10 +127,6 @@ public class ISCS {
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
-            }
-
-            if(responseMap.get("rcode") == null){
-                responseMap.put("rcode", "500");
             }
 
             sendResponse(exchange, responseMap);
