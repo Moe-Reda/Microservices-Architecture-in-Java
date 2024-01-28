@@ -72,7 +72,7 @@ public class OrderService {
                     
                     //Get the ISCS URL
                     String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
-                    String data = exchange.getRequestBody().toString();
+                    String data = getRequestBody(exchange);
 
                     //Create a map with the request body
                     Map<String, String> dataMap = bodyToMap(data);
@@ -160,7 +160,7 @@ public class OrderService {
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    responseMap = sendPostRequest(iscsUserUrl, exchange.getRequestBody().toString());
+                    responseMap = sendPostRequest(iscsUserUrl, getRequestBody(exchange));
                 } catch (Exception e) {
                     sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
@@ -200,7 +200,7 @@ public class OrderService {
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for product");
-                    responseMap = sendPostRequest(iscsproductUrl, exchange.getRequestBody().toString());
+                    responseMap = sendPostRequest(iscsproductUrl, getRequestBody(exchange));
                 } catch (Exception e) {
                     sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());

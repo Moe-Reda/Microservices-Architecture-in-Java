@@ -77,7 +77,7 @@ public class ISCS {
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    responseMap = sendPostRequest(UserServiceUrl, exchange.getRequestBody().toString());
+                    responseMap = sendPostRequest(UserServiceUrl, getRequestBody(exchange));
                 } catch (Exception e) {
                     sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
@@ -119,7 +119,7 @@ public class ISCS {
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for product");
-                    responseMap = sendPostRequest(productServiceUrl, exchange.getRequestBody().toString());
+                    responseMap = sendPostRequest(productServiceUrl, getRequestBody(exchange));
                 } catch (Exception e) {
                     sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
