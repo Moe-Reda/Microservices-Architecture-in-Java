@@ -20,11 +20,20 @@ def format_data(data):
             'quantity': data[5]
         }
     elif data[0] == 'ORDER':
-        data = {
-            'command': data[1],
-            'product_id': data[2],
-            'quantity': data[3],
-        }
+        if len(data) == 5:
+            data = {
+                'command': data[1],
+                'product_id': data[2],
+                'user_id': data[3],
+                'quantity': data[4],
+            }
+        else:
+            data = {
+                'command': data[1],
+                'product_id': data[2],
+                'user_id': 1,
+                'quantity': data[3],
+            }
     return data
 
 def read_config(config_file):
@@ -48,7 +57,7 @@ def send_request(api_url, request):
         else:
             print("Sending POST request to", api_url)
             data = format_data(request)
-            response = requests.post(api_url, data=data, headers=headers)
+            response = requests.post(api_url, data=str(data), headers=headers)
         print(f"Request: {request} | Response: {response.text}")
     except requests.RequestException as e:
         print(f"Error sending request: {e}")
