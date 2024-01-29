@@ -78,7 +78,7 @@ public class Util {
         }
 
         in.close();
-        return bodyToMap(response.toString());
+        return bodyToMap(response.toString().replace("\"", ""));
     }
 
     public static String getRequestBody(HttpExchange exchange) throws IOException {
