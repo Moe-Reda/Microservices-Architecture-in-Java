@@ -68,10 +68,11 @@ public class OrderService {
             // Handle POST request for /order
             if("POST".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a POST request for user");
+                    System.out.println("It is a POST request for order");
                     
                     //Get the ISCS URL
                     String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
+                    String iscsProductUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/product");
                     String data = getRequestBody(exchange);
 
                     //Create a map with the request body
@@ -82,7 +83,7 @@ public class OrderService {
                     int userRcode = Integer.parseInt(userResponseMap.get("rcode"));
 
                     //Get product data
-                    Map<String, String> productResponseMap = sendGetRequest(iscsUserUrl.concat("/").concat(dataMap.get("product_id")));
+                    Map<String, String> productResponseMap = sendGetRequest(iscsProductUrl.concat("/").concat(dataMap.get("product_id")));
                     int productRcode = Integer.parseInt(productResponseMap.get("rcode"));
                     int productQuantity = Integer.parseInt(productResponseMap.get("quantity"));
                     int orderQuantity = Integer.parseInt(dataMap.get("quantity"));
@@ -96,7 +97,7 @@ public class OrderService {
                         orderMap.put("id", productResponseMap.get("product_id"));
                         int newProductQuantity = productQuantity - orderQuantity;
                         orderMap.put("quantity", String.valueOf(newProductQuantity));
-                        responseMap = sendPostRequest(iscsUserUrl, orderMap.toString());
+                        responseMap = sendPostRequest(iscsProductUrl, orderMap.toString());
                     } else if(userRcode != 200 || productRcode != 200){
                         responseMap.put("rcode", "404");
                     } else{
