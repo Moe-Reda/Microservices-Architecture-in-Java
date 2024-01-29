@@ -222,7 +222,7 @@ public class OrderService {
         int rcode = Integer.parseInt(responseMap.get("rcode"));
         responseMap.remove("rcode");
         System.out.println("The response is: " + responseMap.toString());
-        exchange.sendResponseHeaders(rcode, responseMap.toString().length());
+        //exchange.sendResponseHeaders(rcode, responseMap.toString().length());
         OutputStream os = exchange.getResponseBody();
         os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
         os.close();
@@ -301,7 +301,7 @@ public class OrderService {
         //   System.out.println(header.getKey() + ": " + header.getValue().getFirst());
         //}
 
-        System.out.println("Request Body: " + getRequestBody(exchange));
+        //System.out.println("Request Body: " + getRequestBody(exchange));
     }
 
     private static Map<String, String> bodyToMap(String data) {

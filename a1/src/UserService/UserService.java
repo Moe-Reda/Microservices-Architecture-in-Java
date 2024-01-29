@@ -4,10 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -20,7 +17,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.sqlite.JDBC;
 
 public class UserService {
     static JSONObject jsonObject = new JSONObject();
@@ -40,6 +36,7 @@ public class UserService {
             + "	email varchar(255),\n"
             + "	password varchar(255),\n"
             + ");";
+            statement.execute(sql);
         } catch(SQLException e){
           // if the error message is "out of memory",
           // it probably means no database file is found
@@ -134,7 +131,6 @@ public class UserService {
                     //Handle update
                     if(dataMap.get("command").equals("update")){
                         if(getQuery(dataMap.get("id"), statement).isBeforeFirst()){
-                            String command;
                             
                             //Check if the username needs to be updated
                             if(dataMap.get("username") != null){
