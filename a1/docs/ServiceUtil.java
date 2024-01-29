@@ -21,12 +21,12 @@ import org.json.JSONObject;
 
 import com.sun.net.httpserver.HttpExchange;
 
-public class Util {
+public class ServiceUtil {
     public static void sendResponse(HttpExchange exchange, JSONObject responseMap) throws IOException {
         System.out.println("The response code is: " + responseMap.get("rcode"));
         int rcode = responseMap.getInt("rcode");
         responseMap.remove("rcode");
-        responseMap.put("Debug", "Silly goofy message");
+        responseMap.put("Debug", "Silly goofy messages");
         System.out.println("The response is: " + responseMap.toString());
         exchange.sendResponseHeaders(200, responseMap.toString().length()); //Change for final version
         OutputStream os = exchange.getResponseBody();
