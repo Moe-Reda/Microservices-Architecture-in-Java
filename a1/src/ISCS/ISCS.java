@@ -26,7 +26,7 @@ public class ISCS {
         }
 
         //Map representing config.json
-        JSONObject jsonObject = new JSONObject(jsonString);
+        jsonObject = new JSONObject(jsonString);
 
         int port = jsonObject.getJSONObject("InterServiceCommunication").getInt("port");
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
