@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import docs.util;
+import docs.Util;
 
 public class ISCS {
     static JSONObject jsonObject = new JSONObject();
@@ -48,7 +48,7 @@ public class ISCS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            util.printClientInfo(exchange);
+            Util.printClientInfo(exchange);
 
             // Handle POST request for /test
             String userIP = jsonObject.getJSONObject("UserService").get("ip").toString();
@@ -63,24 +63,24 @@ public class ISCS {
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
                     String url = UserServiceUrl.concat(params);
-                    responseMap = util.sendGetRequest(url);
+                    responseMap = Util.sendGetRequest(url);
                 } catch (Exception e) {
-                    util.sendResponse(exchange, responseMap);
+                    Util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    responseMap = util.sendPostRequest(UserServiceUrl, util.getRequestBody(exchange));
+                    responseMap = Util.sendPostRequest(UserServiceUrl, Util.getRequestBody(exchange));
                 } catch (Exception e) {
-                    util.sendResponse(exchange, responseMap);
+                    Util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
 
-            util.sendResponse(exchange, responseMap);
+            Util.sendResponse(exchange, responseMap);
 
 
         }
@@ -91,7 +91,7 @@ public class ISCS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            util.printClientInfo(exchange);
+            Util.printClientInfo(exchange);
 
             // Handle POST request for /test
             String productIP = jsonObject.getJSONObject("ProductService").get("ip").toString();
@@ -106,24 +106,24 @@ public class ISCS {
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
                     String url = productServiceUrl.concat(params);
-                    responseMap = util.sendGetRequest(url);
+                    responseMap = Util.sendGetRequest(url);
                 } catch (Exception e) {
-                    util.sendResponse(exchange, responseMap);
+                    Util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for product");
-                    responseMap = util.sendPostRequest(productServiceUrl, util.getRequestBody(exchange));
+                    responseMap = Util.sendPostRequest(productServiceUrl, Util.getRequestBody(exchange));
                 } catch (Exception e) {
-                    util.sendResponse(exchange, responseMap);
+                    Util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
 
-            util.sendResponse(exchange, responseMap);
+            Util.sendResponse(exchange, responseMap);
 
         }
     }

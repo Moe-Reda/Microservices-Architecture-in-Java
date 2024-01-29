@@ -14,7 +14,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +21,7 @@ import org.json.JSONObject;
 
 import com.sun.net.httpserver.HttpExchange;
 
-public class util {
+public class Util {
     public static void sendResponse(HttpExchange exchange, JSONObject responseMap) throws IOException {
         System.out.println("The response code is: " + responseMap.get("rcode"));
         int rcode = responseMap.getInt("rcode");

@@ -10,7 +10,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import docs.util;
+import docs.Util;
 
 public class UserService {
     static JSONObject jsonObject = new JSONObject();
@@ -72,7 +72,7 @@ public class UserService {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            util.printClientInfo(exchange);
+            Util.printClientInfo(exchange);
 
             // Handle GET request for /user
             JSONObject responseMap = new JSONObject();
@@ -87,9 +87,9 @@ public class UserService {
                     String params = clientUrl.substring(index);
 
                     //Execute query
-                    util.makeResponse(responseMap, params, statement);
+                    Util.makeResponse(responseMap, params, statement);
                 } catch (Exception e) {
-                    util.sendResponse(exchange, responseMap);
+                    Util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
@@ -98,11 +98,11 @@ public class UserService {
             else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    JSONObject dataMap = util.bodyToMap(util.getRequestBody(exchange));
+                    JSONObject dataMap = Util.bodyToMap(Util.getRequestBody(exchange));
 
                     //Handle create
                     if(dataMap.get("command").equals("create")){
-                        if(!util.getQuery(dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
+                        if(!Util.getQuery(dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
                             //Create a new User
                             String command = String.format(
                                                 "INSERT ITO users\n" + 
@@ -115,7 +115,7 @@ public class UserService {
                                                 dataMap.get("password")
                                             );
                             statement.execute(command);
-                            util.makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                            Util.makeResponse(responseMap, dataMap.get("id").toString(), statement);
                         } else{
                             //User already exists
                             responseMap.put("rcode", "401");
@@ -124,24 +124,24 @@ public class UserService {
 
                     //Handle update
                     if(dataMap.get("command").equals("update")){
-                        if(util.getQuery(dataMap.get("id").toString(), statement).isBeforeFirst()){
+                        if(Util.getQuery(dataMap.get("id").toString(), statement).isBeforeFirst()){
                             
                             //Check if the username needs to be updated
                             if(dataMap.get("username") != null){
-                                util.updateDB("username", dataMap.get("username").toString(), dataMap.get("id").toString(), statement);
+                                Util.updateDB("username", dataMap.get("username").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the email needs to be updated
                             if(dataMap.get("email") != null){
-                                util.updateDB("email", dataMap.get("email").toString(), dataMap.get("id").toString(), statement);
+                                Util.updateDB("email", dataMap.get("email").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the password needs to be updated
                             if(dataMap.get("password") != null){
-                                util.updateDB("password", dataMap.get("password").toString(), dataMap.get("id").toString(), statement);
+                                Util.updateDB("password", dataMap.get("password").toString(), dataMap.get("id").toString(), statement);
                             }
 
-                            util.makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                            Util.makeResponse(responseMap, dataMap.get("id").toString(), statement);
                         } else{
                             //User does not exist
                             responseMap.put("rcode", "404");
@@ -150,9 +150,9 @@ public class UserService {
 
                     //Handle delete
                     if(dataMap.get("command").equals("delete")){
-                        if(util.getQuery(dataMap.get("id").toString(), statement).isBeforeFirst()){
+                        if(Util.getQuery(dataMap.get("id").toString(), statement).isBeforeFirst()){
                             //Check if the username needs to be updated
-                            util.makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                            Util.makeResponse(responseMap, dataMap.get("id").toString(), statement);
                             String command = String.format("DELETE FROM users WHERE id = %s;", dataMap.get("id").toString());
                             statement.execute(command);
                         } else{
@@ -162,13 +162,13 @@ public class UserService {
                     }
                     
                 } catch (Exception e) {
-                    util.sendResponse(exchange, responseMap);
+                    Util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
 
-            util.sendResponse(exchange, responseMap);
+            Util.sendResponse(exchange, responseMap);
 
 
         }
