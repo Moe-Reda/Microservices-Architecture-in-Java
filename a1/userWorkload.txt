@@ -1,0 +1,8 @@
+USER create 2 username2NKlLXs elOf@Y4vxdHuRs2620f.com bY3NAKPS
+USER create 3 usernameKPTgmeH 36a9@hbCa.com gOmaQKKw
+USER get 2
+USER get 3
+USER delete 3 usernameKPTgmeH 36a9@hbCa.com gOmaQKKw
+USER get 3
+USER update 3 username:un-BhxQtm2AAJZZAt3 email:ZwN1@ABiDLCNO9T.com password:wDkglEM2
+USER get 3

@@ -26,9 +26,8 @@ public class Util {
         System.out.println("The response code is: " + responseMap.get("rcode"));
         int rcode = responseMap.getInt("rcode");
         responseMap.remove("rcode");
-        responseMap.put("Debug", "Silly goofy message");
         System.out.println("The response is: " + responseMap.toString());
-        exchange.sendResponseHeaders(200, responseMap.toString().length()); //Change for final version
+        exchange.sendResponseHeaders(rcode, responseMap.toString().length()); //Change for final version
         System.out.println("The headers are sent");
         OutputStream os = exchange.getResponseBody();
         os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
