@@ -222,7 +222,7 @@ public class OrderService {
         int rcode = Integer.parseInt(responseMap.get("rcode"));
         responseMap.remove("rcode");
         System.out.println("The response is: " + responseMap.toString());
-        //exchange.sendResponseHeaders(rcode, responseMap.toString().length());
+        exchange.sendResponseHeaders(200, responseMap.toString().length()); //Change for final version
         OutputStream os = exchange.getResponseBody();
         os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
         os.close();
@@ -311,6 +311,7 @@ public class OrderService {
                                     .split(",");
         Map<String, String> map = new HashMap<String, String>();
         for(String keyValue : keyValueList){
+            System.out.println(keyValue);
             String[] keyValuePair = keyValue.split("=");
             map.put(keyValuePair[0], keyValuePair[1]);
         }

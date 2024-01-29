@@ -34,7 +34,7 @@ public class UserService {
             + "	id integer PRIMARY KEY,\n"
             + "	username varchar(255),\n"
             + "	email varchar(255),\n"
-            + "	password varchar(255),\n"
+            + "	password varchar(255)\n"
             + ");";
             statement.execute(sql);
         } catch(SQLException e){
@@ -245,7 +245,7 @@ public class UserService {
         //   System.out.println(header.getKey() + ": " + header.getValue().getFirst());
         //}
 
-        System.out.println("Request Body: " + getRequestBody(exchange));
+        //System.out.println("Request Body: " + getRequestBody(exchange));
     }
 
     private static Map<String, String> bodyToMap(String data) {
