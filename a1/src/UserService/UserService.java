@@ -28,6 +28,17 @@ public class UserService {
     static Statement statement = null;
 
     public static void main(String[] args) throws IOException {
+        //Load Driver
+        try {
+            // The newInstance() call is a work around for some
+            // broken Java implementations
+            Class.forName("com.mysql.jdbc.Driver").getDeclaredConstructor().newInstance();
+            Class.forName("org.sqlite.JDBC");
+        } catch (Exception e) {
+            // handle the error
+            System.out.println(e.getMessage());
+        }
+
         // create a database connection
         try{
             connection = DriverManager.getConnection("jdbc:sqlite:user.db");
