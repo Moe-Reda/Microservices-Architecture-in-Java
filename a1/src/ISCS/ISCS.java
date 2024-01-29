@@ -52,8 +52,11 @@ public class ISCS {
 
             System.out.println("Getting user service url");
             String userIP = jsonObject.getJSONObject("UserService").get("ip").toString();
+            System.out.println("User IP: " + userIP);
             int userPort = jsonObject.getJSONObject("UserService").getInt("port");
-            String UserServiceUrl = userIP.concat(":").concat(String.valueOf(userPort)).concat("/user");
+            System.out.println("User port: " + String.valueOf(userPort));
+            String userServiceUrl = userIP.concat(":").concat(String.valueOf(userPort)).concat("/user");
+            System.out.println("User URL: " + userServiceUrl);
             System.out.println("Making Response map");
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
@@ -63,7 +66,7 @@ public class ISCS {
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
-                    String url = UserServiceUrl.concat(params);
+                    String url = userServiceUrl.concat(params);
                     responseMap = Util.sendGetRequest(url);
                 } catch (Exception e) {
                     Util.sendResponse(exchange, responseMap);
@@ -73,7 +76,7 @@ public class ISCS {
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    responseMap = Util.sendPostRequest(UserServiceUrl, Util.getRequestBody(exchange));
+                    responseMap = Util.sendPostRequest(userServiceUrl, Util.getRequestBody(exchange));
                 } catch (Exception e) {
                     Util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
