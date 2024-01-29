@@ -30,7 +30,7 @@ public class UserService {
     public static void main(String[] args) throws IOException {
         // create a database connection
         try{
-            Class.forName("org.sqlite.JDBC");
+            //Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection("jdbc:sqlite:user.db");
             statement = connection.createStatement();
             // SQL statement for creating a new table
@@ -40,7 +40,7 @@ public class UserService {
             + "	email varchar(255),\n"
             + "	password varchar(255),\n"
             + ");";
-        } catch(SQLException | ClassNotFoundException e){
+        } catch(SQLException e){
           // if the error message is "out of memory",
           // it probably means no database file is found
           System.err.println(e.getMessage());
