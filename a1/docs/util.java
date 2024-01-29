@@ -26,9 +26,9 @@ public class Util {
         System.out.println("The response code is: " + responseMap.get("rcode"));
         int rcode = responseMap.getInt("rcode");
         responseMap.remove("rcode");
+        responseMap.put("Debug", "Silly goofy message");
         System.out.println("The response is: " + responseMap.toString());
-        exchange.sendResponseHeaders(rcode, responseMap.toString().length()); //Change for final version
-        System.out.println("The headers are sent");
+        exchange.sendResponseHeaders(200, responseMap.toString().length()); //Change for final version
         OutputStream os = exchange.getResponseBody();
         os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
         os.close();
@@ -78,7 +78,7 @@ public class Util {
         }
 
         in.close();
-        return bodyToMap(response.toString().replace("\"", ""));
+        return bodyToMap(response.toString());
     }
 
     public static String getRequestBody(HttpExchange exchange) throws IOException {
@@ -115,6 +115,7 @@ public class Util {
         String[] keyValueList = data.replace(" ", "")
                                     .replace("}", "")
                                     .replace("{", "")
+                                    .replace("\"", "")
                                     .split(",");
         JSONObject map = new JSONObject();
         for(String keyValue : keyValueList){
