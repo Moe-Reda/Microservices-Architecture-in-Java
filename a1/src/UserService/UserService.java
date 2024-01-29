@@ -183,7 +183,7 @@ public class UserService {
 
     }
 
-    private void updateDB(String field, String value, String id) throws SQLException {
+    private static void updateDB(String field, String value, String id) throws SQLException {
         String command;
         command = String.format("UPDATE users SET %s = \'%s\' WHERE id = %s", field, value, id);
         statement.execute(command);
