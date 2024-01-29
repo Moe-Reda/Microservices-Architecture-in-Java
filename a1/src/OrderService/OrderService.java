@@ -4,15 +4,10 @@ import com.sun.net.httpserver.HttpServer;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+
+import docs.util;
 
 public class OrderService {
     public static String iscsIp = "";
@@ -62,7 +57,7 @@ public class OrderService {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info
-            printClientInfo(exchange);
+            util.printClientInfo(exchange);
 
 
             // Handle POST request for /order
@@ -73,55 +68,55 @@ public class OrderService {
                     //Get the ISCS URL
                     String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
                     String iscsProductUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/product");
-                    String data = getRequestBody(exchange);
+                    String data = util.getRequestBody(exchange);
 
                     //Create a map with the request body
-                    Map<String, String> dataMap = bodyToMap(data);
+                    JSONObject dataMap = util.bodyToMap(data);
 
                     //Get user data
-                    Map<String, String> userResponseMap = sendGetRequest(iscsUserUrl.concat("/").concat(dataMap.get("user_id")));
-                    int userRcode = Integer.parseInt(userResponseMap.get("rcode"));
+                    JSONObject userResponseMap = util.sendGetRequest(iscsUserUrl.concat("/").concat(dataMap.get("user_id").toString()));
+                    int userRcode = userResponseMap.getInt("rcode");
 
                     //Get product data
-                    Map<String, String> productResponseMap = sendGetRequest(iscsProductUrl.concat("/").concat(dataMap.get("product_id")));
-                    int productRcode = Integer.parseInt(productResponseMap.get("rcode"));
-                    int productQuantity = Integer.parseInt(productResponseMap.get("quantity"));
-                    int orderQuantity = Integer.parseInt(dataMap.get("quantity"));
+                    JSONObject productResponseMap = util.sendGetRequest(iscsProductUrl.concat("/").concat(dataMap.get("product_id").toString()));
+                    int productRcode = productResponseMap.getInt("rcode");
+                    int productQuantity = productResponseMap.getInt("quantity");
+                    int orderQuantity = dataMap.getInt("quantity");
 
-                    Map<String, String> responseMap = new HashMap<>();
+                    JSONObject responseMap = new JSONObject();
                     
                     //Send POST request to order service if it is a valid request
                     if(userRcode == 200 && productRcode == 200 && productQuantity >= orderQuantity){
-                        Map<String, String> orderMap = new HashMap<>();
+                        JSONObject orderMap = new JSONObject();
                         orderMap.put("command", productResponseMap.get("update"));
-                        orderMap.put("id", productResponseMap.get("product_id"));
+                        orderMap.put("id", productResponseMap.getInt("product_id"));
                         int newProductQuantity = productQuantity - orderQuantity;
-                        orderMap.put("quantity", String.valueOf(newProductQuantity));
-                        responseMap = sendPostRequest(iscsProductUrl, orderMap.toString());
+                        orderMap.put("quantity", newProductQuantity);
+                        responseMap = util.sendPostRequest(iscsProductUrl, orderMap.toString());
                     } else if(userRcode != 200 || productRcode != 200){
-                        responseMap.put("rcode", "404");
+                        responseMap.put("rcode", 404);
                     } else{
-                        responseMap.put("rcode", "401");
+                        responseMap.put("rcode", 401);
                     }
 
                     //Send a response back to client
-                    Map<String, String> clientResponseMap = new HashMap<>();
-                    clientResponseMap.put("id", UUID.randomUUID().toString());
-                    clientResponseMap.put("product_id", dataMap.get("product_id"));
-                    clientResponseMap.put("user_id", dataMap.get("user_id"));
-                    clientResponseMap.put("quantity", dataMap.get("quantity"));
-                    if(responseMap.get("rcode").equals("200")){
+                    JSONObject clientResponseMap = new JSONObject();
+                    clientResponseMap.put("id", UUID.randomUUID());
+                    clientResponseMap.put("product_id", dataMap.getInt("product_id"));
+                    clientResponseMap.put("user_id", dataMap.getInt("user_id"));
+                    clientResponseMap.put("quantity", dataMap.getInt("quantity"));
+                    if(responseMap.get("rcode").equals(200)){
                         clientResponseMap.put("status message", "Success");
-                        clientResponseMap.put("rcode", "200");
-                    } else if(responseMap.get("rcode").equals("404")){
+                        clientResponseMap.put("rcode", 200);
+                    } else if(responseMap.get("rcode").equals(404)){
                         clientResponseMap.put("status message", "Invalid request");
-                        clientResponseMap.put("rcode", "404");
+                        clientResponseMap.put("rcode", 404);
                     } else{
                         clientResponseMap.put("status message", "Exceeded quantity limit");
-                        clientResponseMap.put("rcode", "401");
+                        clientResponseMap.put("rcode", 401);
                     }
 
-                    sendResponse(exchange, clientResponseMap);
+                    util.sendResponse(exchange, clientResponseMap);
 
 
                 } catch (Exception e) {
@@ -140,12 +135,12 @@ public class OrderService {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            printClientInfo(exchange);
+            util.printClientInfo(exchange);
 
             // Handle POST request for /test
             String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
-            Map<String, String> responseMap = new HashMap<>();
-            responseMap.put("rcode", "500");
+            JSONObject responseMap = new JSONObject();
+            responseMap.put("rcode", 500);
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a GET request for user");
@@ -153,24 +148,24 @@ public class OrderService {
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
                     String url = iscsUserUrl.concat(params);
-                    responseMap = sendGetRequest(url);
+                    responseMap = util.sendGetRequest(url);
                 } catch (Exception e) {
-                    sendResponse(exchange, responseMap);
+                    util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    responseMap = sendPostRequest(iscsUserUrl, getRequestBody(exchange));
+                    responseMap = util.sendPostRequest(iscsUserUrl, util.getRequestBody(exchange));
                 } catch (Exception e) {
-                    sendResponse(exchange, responseMap);
+                    util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
 
-            sendResponse(exchange, responseMap);
+            util.sendResponse(exchange, responseMap);
 
 
         }
@@ -181,12 +176,12 @@ public class OrderService {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            printClientInfo(exchange);
+            util.printClientInfo(exchange);
 
             // Handle POST request for /test
             String iscsproductUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/product");
-            Map<String, String> responseMap = new HashMap<>();
-            responseMap.put("rcode", "500");
+            JSONObject responseMap = new JSONObject();
+            responseMap.put("rcode", 500);
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a GET request for product");
@@ -194,128 +189,27 @@ public class OrderService {
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
                     String url = iscsproductUrl.concat(params);
-                    responseMap = sendGetRequest(url);
+                    responseMap = util.sendGetRequest(url);
                 } catch (Exception e) {
-                    sendResponse(exchange, responseMap);
+                    util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for product");
-                    responseMap = sendPostRequest(iscsproductUrl, getRequestBody(exchange));
+                    responseMap = util.sendPostRequest(iscsproductUrl, util.getRequestBody(exchange));
                 } catch (Exception e) {
-                    sendResponse(exchange, responseMap);
+                    util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
 
-            sendResponse(exchange, responseMap);
+            util.sendResponse(exchange, responseMap);
 
 
         }
-    }
-
-    private static void sendResponse(HttpExchange exchange, Map<String, String> responseMap) throws IOException {
-        System.out.println("The response code is: " + responseMap.get("rcode"));
-        int rcode = Integer.parseInt(responseMap.get("rcode"));
-        responseMap.remove("rcode");
-        System.out.println("The response is: " + responseMap.toString());
-        exchange.sendResponseHeaders(200, responseMap.toString().length()); //Change for final version
-        OutputStream os = exchange.getResponseBody();
-        os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
-        os.close();
-    }
-
-    private static Map<String, String> sendGetRequest(String url) throws Exception {
-        URI apiUri = new URI("http://".concat(url));
-        URL apiUrl = apiUri.toURL();
-        System.out.println("Connecting to: " + url);
-        HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
-        connection.setRequestMethod("GET");
-
-        int responseCode = connection.getResponseCode();
-        Map<String, String> responseMap = getResponse(connection);
-        responseMap.put("rcode", String.valueOf(responseCode));
-
-        return responseMap;
-    }
-
-    private static Map<String, String> sendPostRequest(String url, String postData) throws Exception {
-        URI apiUri = new URI("http://".concat(url));
-        URL apiUrl = apiUri.toURL();
-        System.out.println("Connecting to: " + url);
-        HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setDoOutput(true);
-
-        try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = postData.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-
-        int responseCode = connection.getResponseCode();
-        Map<String, String> responseMap = getResponse(connection);
-        responseMap.put("rcode", String.valueOf(responseCode));
-
-        return responseMap;
-    }
-
-    private static Map<String, String> getResponse(HttpURLConnection connection) throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String inputLine;
-        StringBuilder response = new StringBuilder();
-
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-
-        in.close();
-        return bodyToMap(response.toString());
-    }
-
-    private static String getRequestBody(HttpExchange exchange) throws IOException {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
-            StringBuilder requestBody = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                requestBody.append(line);
-            }
-            return requestBody.toString();
-        }
-    }
-
-    private static void printClientInfo(HttpExchange exchange) throws IOException {
-        String clientAddress = exchange.getRemoteAddress().getAddress().toString();
-        String requestMethod = exchange.getRequestMethod();
-        String requestURI = exchange.getRequestURI().toString();
-        Map<String, List<String>> requestHeaders = exchange.getRequestHeaders();
-
-        System.out.println("Client Address: " + clientAddress);
-        System.out.println("Request Method: " + requestMethod);
-        System.out.println("Request URI: " + requestURI);
-        System.out.println("Request Headers: " + requestHeaders);
-        // Print all request headers
-        //for (Map.Entry<String, List<String>> header : requestHeaders.entrySet()) {
-        //   System.out.println(header.getKey() + ": " + header.getValue().getFirst());
-        //}
-
-        //System.out.println("Request Body: " + getRequestBody(exchange));
-    }
-
-    private static Map<String, String> bodyToMap(String data) {
-        String[] keyValueList = data.replace(" ", "")
-                                    .replace("}", "")
-                                    .replace("{", "")
-                                    .split(",");
-        Map<String, String> map = new HashMap<String, String>();
-        for(String keyValue : keyValueList){
-            System.out.println(keyValue);
-            String[] keyValuePair = keyValue.split("=");
-            map.put(keyValuePair[0], keyValuePair[1]);
-        }
-        return map;
     }
 
 }

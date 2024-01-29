@@ -5,18 +5,12 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import docs.util;
 
 public class UserService {
     static JSONObject jsonObject = new JSONObject();
@@ -78,10 +72,10 @@ public class UserService {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            printClientInfo(exchange);
+            util.printClientInfo(exchange);
 
             // Handle GET request for /user
-            Map<String, String> responseMap = new HashMap<>();
+            JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
@@ -89,13 +83,13 @@ public class UserService {
 
                     //Get parameter
                     String clientUrl = exchange.getRequestURI().toString();
-                    int index = clientUrl.indexOf("user") + "user".length();
+                    int index = clientUrl.indexOf("user") + "user".length() + 1;
                     String params = clientUrl.substring(index);
 
                     //Execute query
-                    makeResponse(responseMap, params, statement);
+                    util.makeResponse(responseMap, params, statement);
                 } catch (Exception e) {
-                    sendResponse(exchange, responseMap);
+                    util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
@@ -104,24 +98,24 @@ public class UserService {
             else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    Map<String, String> dataMap = bodyToMap(getRequestBody(exchange));
+                    JSONObject dataMap = util.bodyToMap(util.getRequestBody(exchange));
 
                     //Handle create
                     if(dataMap.get("command").equals("create")){
-                        if(!getQuery(dataMap.get("id"), statement).isBeforeFirst()){
+                        if(!util.getQuery(dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
                             //Create a new User
                             String command = String.format(
                                                 "INSERT ITO users\n" + 
                                                 "(id, username, email, password)\n" +
                                                 "VALUES\n" +
                                                 "(%s, \'%s\', \'%s\', \'%s\')",
-                                                dataMap.get("id"),
+                                                dataMap.get("id").toString(),
                                                 dataMap.get("username"),
                                                 dataMap.get("email"),
                                                 dataMap.get("password")
                                             );
                             statement.execute(command);
-                            makeResponse(responseMap, dataMap.get("id"), statement);
+                            util.makeResponse(responseMap, dataMap.get("id").toString(), statement);
                         } else{
                             //User already exists
                             responseMap.put("rcode", "401");
@@ -130,24 +124,24 @@ public class UserService {
 
                     //Handle update
                     if(dataMap.get("command").equals("update")){
-                        if(getQuery(dataMap.get("id"), statement).isBeforeFirst()){
+                        if(util.getQuery(dataMap.get("id").toString(), statement).isBeforeFirst()){
                             
                             //Check if the username needs to be updated
                             if(dataMap.get("username") != null){
-                                updateDB("username", dataMap.get("username"), dataMap.get("id"));
+                                util.updateDB("username", dataMap.get("username").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the email needs to be updated
                             if(dataMap.get("email") != null){
-                                updateDB("email", dataMap.get("email"), dataMap.get("id"));
+                                util.updateDB("email", dataMap.get("email").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the password needs to be updated
                             if(dataMap.get("password") != null){
-                                updateDB("password", dataMap.get("password"), dataMap.get("id"));
+                                util.updateDB("password", dataMap.get("password").toString(), dataMap.get("id").toString(), statement);
                             }
 
-                            makeResponse(responseMap, dataMap.get("id"), statement);
+                            util.makeResponse(responseMap, dataMap.get("id").toString(), statement);
                         } else{
                             //User does not exist
                             responseMap.put("rcode", "404");
@@ -156,10 +150,10 @@ public class UserService {
 
                     //Handle delete
                     if(dataMap.get("command").equals("delete")){
-                        if(getQuery(dataMap.get("id"), statement).isBeforeFirst()){
+                        if(util.getQuery(dataMap.get("id").toString(), statement).isBeforeFirst()){
                             //Check if the username needs to be updated
-                            makeResponse(responseMap, dataMap.get("id"), statement);
-                            String command = String.format("DELETE FROM users WHERE id = %s;", dataMap.get("id"));
+                            util.makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                            String command = String.format("DELETE FROM users WHERE id = %s;", dataMap.get("id").toString());
                             statement.execute(command);
                         } else{
                             //User does not exist
@@ -168,97 +162,18 @@ public class UserService {
                     }
                     
                 } catch (Exception e) {
-                    sendResponse(exchange, responseMap);
+                    util.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
 
-            sendResponse(exchange, responseMap);
+            util.sendResponse(exchange, responseMap);
 
 
         }
 
     }
 
-    private static void updateDB(String field, String value, String id) throws SQLException {
-        String command;
-        command = String.format("UPDATE users SET %s = \'%s\' WHERE id = %s", field, value, id);
-        statement.execute(command);
-    }
-
-    private static void makeResponse(Map<String, String> responseMap, String params, Statement statement) throws SQLException, NoSuchAlgorithmException {
-            ResultSet result = getQuery(params, statement);
-
-            //Check if user is found
-            if (!result.isBeforeFirst() ) {    
-                responseMap.put("rcode", "404"); 
-            } else{ 
-                //Make a response
-                responseMap.put("rcode", "200");
-                result.first();   
-                responseMap.put("id", params);
-                responseMap.put("username", result.getString("username"));
-                responseMap.put("email", result.getString("email"));
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] encodedhash = digest.digest(result.getString("password").getBytes(StandardCharsets.UTF_8));
-                responseMap.put("password", encodedhash.toString());
-            }
-        }
-
-    private static ResultSet getQuery(String params, Statement statement) throws SQLException {
-        return statement.executeQuery("SELECT * FROM users WHERE id = " + params + ";");
-    }
-
-    private static void sendResponse(HttpExchange exchange, Map<String, String> responseMap) throws IOException {
-        int rcode = Integer.parseInt(responseMap.get("rcode"));
-        responseMap.remove("rcode");
-        exchange.sendResponseHeaders(rcode, responseMap.toString().length());
-        OutputStream os = exchange.getResponseBody();
-        os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
-        os.close();
-    }
-
-    private static String getRequestBody(HttpExchange exchange) throws IOException {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
-            StringBuilder requestBody = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                requestBody.append(line);
-            }
-            return requestBody.toString();
-        }
-    }
-
-    private static void printClientInfo(HttpExchange exchange) throws IOException {
-        String clientAddress = exchange.getRemoteAddress().getAddress().toString();
-        String requestMethod = exchange.getRequestMethod();
-        String requestURI = exchange.getRequestURI().toString();
-        Map<String, List<String>> requestHeaders = exchange.getRequestHeaders();
-
-        System.out.println("Client Address: " + clientAddress);
-        System.out.println("Request Method: " + requestMethod);
-        System.out.println("Request URI: " + requestURI);
-        System.out.println("Request Headers: " + requestHeaders);
-        // Print all request headers
-        //for (Map.Entry<String, List<String>> header : requestHeaders.entrySet()) {
-        //   System.out.println(header.getKey() + ": " + header.getValue().getFirst());
-        //}
-
-        //System.out.println("Request Body: " + getRequestBody(exchange));
-    }
-
-    private static Map<String, String> bodyToMap(String data) {
-            String[] keyValueList = data.replace(" ", "")
-                                        .replace("}", "")
-                                        .replace("{", "")
-                                        .split(",");
-            Map<String, String> map = new HashMap<String, String>();
-            for(String keyValue : keyValueList){
-                String[] keyValuePair = keyValue.split("=");
-                map.put(keyValuePair[0], keyValuePair[1]);
-            }
-            return map;
-        }
 }
 
