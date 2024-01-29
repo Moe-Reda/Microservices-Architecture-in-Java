@@ -28,19 +28,9 @@ public class UserService {
     static Statement statement = null;
 
     public static void main(String[] args) throws IOException {
-        //Load Driver
-        try {
-            // The newInstance() call is a work around for some
-            // broken Java implementations
-            Class.forName("com.mysql.jdbc.Driver").getDeclaredConstructor().newInstance();
-            Class.forName("org.sqlite.JDBC");
-        } catch (Exception e) {
-            // handle the error
-            System.out.println(e.getMessage());
-        }
-
         // create a database connection
         try{
+            Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection("jdbc:sqlite:user.db");
             statement = connection.createStatement();
             // SQL statement for creating a new table
@@ -50,7 +40,7 @@ public class UserService {
             + "	email varchar(255),\n"
             + "	password varchar(255),\n"
             + ");";
-        } catch(SQLException e){
+        } catch(SQLException | ClassNotFoundException e){
           // if the error message is "out of memory",
           // it probably means no database file is found
           System.err.println(e.getMessage());
