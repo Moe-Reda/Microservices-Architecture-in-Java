@@ -50,10 +50,11 @@ public class ISCS {
             //Print client info for debugging
             Util.printClientInfo(exchange);
 
-            // Handle POST request for /test
+            System.out.println("Getting user service url");
             String userIP = jsonObject.getJSONObject("UserService").get("ip").toString();
             int userPort = jsonObject.getJSONObject("UserService").getInt("port");
             String UserServiceUrl = userIP.concat(":").concat(String.valueOf(userPort)).concat("/user");
+            System.out.println("Making Response map");
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
@@ -79,7 +80,7 @@ public class ISCS {
                     throw new RuntimeException(e);
                 }
             }
-
+            System.out.println("Sending a response back");
             Util.sendResponse(exchange, responseMap);
 
 
