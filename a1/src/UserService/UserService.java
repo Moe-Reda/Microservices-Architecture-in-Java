@@ -105,7 +105,7 @@ public class UserService {
                         if(!ServiceUtil.getQuery(dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
                             //Create a new User
                             String command = String.format(
-                                                "INSERT ITO users\n" + 
+                                                "INSERT INTO users\n" + 
                                                 "(id, username, email, password)\n" +
                                                 "VALUES\n" +
                                                 "(%s, \'%s\', \'%s\', \'%s\')",
