@@ -31,7 +31,7 @@ public class ProductService {
             + "	id integer PRIMARY KEY,\n"
             + "	name varchar(255),\n"
             + "	description varchar(255),\n"
-            + "	price float\n"
+            + "	price float,\n"
             + "	quantity integer\n"
             + ");";
             statement.execute(sql);
