@@ -16,7 +16,7 @@ mkdir -p $COMPILED_DIR/UserService
 compile() {
     echo "Compiling ServiceUtil and other Java files..."
     # Compile ServiceUtil
-    javac -cp "$CLASSPATH" $SRC_DIR/$DOCS_DIR/ServiceUtil.java -d $COMPILED_DIR
+    javac -cp "$CLASSPATH" $DOCS_DIR/ServiceUtil.java -d $COMPILED_DIR
 
     # Compile ISCS
     javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ISCS/ISCS.java -d $COMPILED_DIR/ISCS
