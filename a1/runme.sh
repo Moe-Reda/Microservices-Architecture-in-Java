@@ -4,7 +4,7 @@
 SRC_DIR="src"
 COMPILED_DIR="compiled"
 DOCS_DIR="docs"
-CLASSPATH="$DOCS_DIR/*:."
+CLASSPATH="$DOCS_DIR/*"
 
 # Ensure the compiled directory exists for each service
 mkdir -p $COMPILED_DIR/ISCS
@@ -19,13 +19,13 @@ compile() {
     javac -cp "$CLASSPATH" $SRC_DIR/ServiceUtil/ServiceUtil.java -d $COMPILED_DIR
 
     # Compile ISCS
-    javac -cp "$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ISCS/ISCS.java -d $COMPILED_DIR/ISCS
+    javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ISCS/ISCS.java -d $COMPILED_DIR/ISCS
     # Compile OrderService
-    javac -cp "$COMPILED_DIR:$CLASSPATH" $SRC_DIR/OrderService/OrderService.java -d $COMPILED_DIR/OrderService
+    javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/OrderService/OrderService.java -d $COMPILED_DIR/OrderService
     # Compile ProductService
-    javac -cp "$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ProductService/ProductService.java -d $COMPILED_DIR/ProductService
+    javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ProductService/ProductService.java -d $COMPILED_DIR/ProductService
     # Compile UserService
-    javac -cp "$COMPILED_DIR:$CLASSPATH" $SRC_DIR/UserService/UserService.java -d $COMPILED_DIR/UserService
+    javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/UserService/UserService.java -d $COMPILED_DIR/UserService
     echo "Compilation completed."
 }
 
