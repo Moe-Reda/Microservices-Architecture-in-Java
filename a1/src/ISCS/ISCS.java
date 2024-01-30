@@ -70,8 +70,8 @@ public class ISCS {
                     responseMap = ServiceUtil.sendGetRequest(url);
                     System.out.println("The response code in the map before responding is: " + String.valueOf(responseMap.getInt("rcode")));
                 } catch (Exception e) {
-                    ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
+                    ServiceUtil.sendResponse(exchange, responseMap);
                     throw new RuntimeException(e);
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
@@ -79,8 +79,8 @@ public class ISCS {
                     System.out.println("It is a POST request for user");
                     responseMap = ServiceUtil.sendPostRequest(userServiceUrl, ServiceUtil.getRequestBody(exchange));
                 } catch (Exception e) {
-                    ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
+                    ServiceUtil.sendResponse(exchange, responseMap);
                     throw new RuntimeException(e);
                 }
             }

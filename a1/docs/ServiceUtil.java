@@ -43,7 +43,7 @@ public class ServiceUtil {
         int responseCode = connection.getResponseCode();
         System.out.println("The response code received is: " + String.valueOf(responseCode));
         JSONObject responseMap = getResponse(connection);
-        System.out.println("The response received");
+        System.out.println("The response is received");
         responseMap.put("rcode", responseCode);
         System.out.println("The response code added to map");
 
@@ -75,9 +75,13 @@ public class ServiceUtil {
         String inputLine;
         StringBuilder response = new StringBuilder();
 
+        System.out.println("Reading response");
+
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
         }
+
+        System.out.println("Response read");
 
         in.close();
         return bodyToMap(response.toString());
@@ -114,12 +118,14 @@ public class ServiceUtil {
 
     public static JSONObject bodyToMap(String data) {
         String[] intValues = {"id", "quantity", "price", "product_id", "user_id"};
+        System.out.println("Splitting response into key value apirs");
         String[] keyValueList = data.replace(" ", "")
                                     .replace("}", "")
                                     .replace("{", "")
                                     .replace("\"", "")
                                     .split(",");
         JSONObject map = new JSONObject();
+        System.out.println("Building JSON object");
         for(String keyValue : keyValueList){
             System.out.println(keyValue);
             String[] keyValuePair = keyValue.replace("\'", "").split(":");
