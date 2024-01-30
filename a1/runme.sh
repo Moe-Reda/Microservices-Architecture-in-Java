@@ -1,33 +1,79 @@
 #!/bin/bash
 
-# Function to compile Java files
-compile_java() {
-    # Check if any Java files exist
-    if ls *.java >/dev/null 2>&1; then
-        # Compile Java files
-        javac *.java
-    else
-        echo "No Java files found."
-    fi
+# Define paths to directories
+SRC_DIR="src"
+COMPILED_DIR="compiled"
+DOCS_DIR="docs"
+CLASSPATH="$DOCS_DIR/*"
+
+# Ensure the compiled directory exists for each service
+mkdir -p $COMPILED_DIR/ISCS
+mkdir -p $COMPILED_DIR/OrderService
+mkdir -p $COMPILED_DIR/ProductService
+mkdir -p $COMPILED_DIR/UserService
+
+# Function to compile all Java files including ServiceUtil.java
+compile() {
+    echo "Compiling ServiceUtil and other Java files..."
+    # Compile ServiceUtil
+    javac -cp "$CLASSPATH" $SRC_DIR/ServiceUtil/ServiceUtil.java -d $COMPILED_DIR
+
+    # Compile ISCS
+    javac -cp "$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ISCS/ISCS.java -d $COMPILED_DIR/ISCS
+    # Compile OrderService
+    javac -cp "$COMPILED_DIR:$CLASSPATH" $SRC_DIR/OrderService/OrderService.java -d $COMPILED_DIR/OrderService
+    # Compile ProductService
+    javac -cp "$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ProductService/ProductService.java -d $COMPILED_DIR/ProductService
+    # Compile UserService
+    javac -cp "$COMPILED_DIR:$CLASSPATH" $SRC_DIR/UserService/UserService.java -d $COMPILED_DIR/UserService
+    echo "Compilation completed."
 }
 
-# Function to run Java program
-run_java() {
-    # Check if any class files exist
-    if ls *.class >/dev/null 2>&1; then
-        # Run Java program
-        java Main
-    else
-        echo "No class files found. Please compile first."
-    fi
+# Function to start the User service
+start_user_service() {
+    echo "Starting User Service..."
+    java -cp "$COMPILED_DIR/UserService:$COMPILED_DIR:$CLASSPATH" UserService.UserService config.json
 }
 
-# Check argument and execute corresponding function
-if [ "$1" == "-c" ]; then
-    compile_java
-elif [ "$1" == "-r" ]; then
-    run_java
-else
-    echo "Invalid argument. Usage: $0 [-c|-r]"
-    exit 1
-fi
+# Function to start the Product service
+start_product_service() {
+    echo "Starting Product Service..."
+    java -cp "$COMPILED_DIR/ProductService:$COMPILED_DIR:$CLASSPATH" ProductService.ProductService config.json
+}
+
+# Function to start the ISCS
+start_iscs() {
+    echo "Starting Inter-service Communication Service (ISCS)..."
+    java -cp "$COMPILED_DIR/ISCS:$COMPILED_DIR:$CLASSPATH" ISCS.ISCS config.json
+}
+
+# Function to start the Order service
+start_order_service() {
+    echo "Starting Order Service..."
+    java -cp "$COMPILED_DIR/OrderService:$COMPILED_DIR:$CLASSPATH" OrderService.OrderService config.json
+}
+
+# Function to start the Workload Parser
+start_workload_parser() {
+    echo "Starting Workload Parser with workload file: $1"
+    # Assuming WorkloadParser.py is not a compiled Java class but a script in the root directory
+    python WorkloadParser.py "$1" config.json
+}
+
+# Check the command-line argument and call the appropriate function
+case $1 in
+    -c) compile;;
+    -u) start_user_service;;
+    -p) start_product_service;;
+    -i) start_iscs;;
+    -o) start_order_service;;
+    -w) shift
+        start_workload_parser "$1";;
+    *) echo "Invalid option. Please use one of the following options:
+        -c to compile all code.
+        -u to start the User service.
+        -p to start the Product service.
+        -i to start the ISCS.
+        -o to start the Order service.
+        -w [workloadfile] to start the Workload Parser with the specified workload file.";;
+esac
