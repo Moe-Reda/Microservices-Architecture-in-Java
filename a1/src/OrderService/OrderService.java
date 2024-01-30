@@ -73,50 +73,57 @@ public class OrderService {
                     //Create a map with the request body
                     JSONObject dataMap = ServiceUtil.bodyToMap(data);
 
-                    //Get user data
-                    JSONObject userResponseMap = ServiceUtil.sendGetRequest(iscsUserUrl.concat("/").concat(dataMap.get("user_id").toString()));
-                    int userRcode = userResponseMap.getInt("rcode");
+                    if(ServiceUtil.isJSON(data) && ServiceUtil.isValidOrder(dataMap)){
+                        //Get user data
+                        JSONObject userResponseMap = ServiceUtil.sendGetRequest(iscsUserUrl.concat("/").concat(dataMap.get("user_id").toString()));
+                        int userRcode = userResponseMap.getInt("rcode");
 
-                    //Get product data
-                    JSONObject productResponseMap = ServiceUtil.sendGetRequest(iscsProductUrl.concat("/").concat(dataMap.get("product_id").toString()));
-                    int productRcode = productResponseMap.getInt("rcode");
-                    int productQuantity = productResponseMap.getInt("quantity");
-                    int orderQuantity = dataMap.getInt("quantity");
+                        //Get product data
+                        JSONObject productResponseMap = ServiceUtil.sendGetRequest(iscsProductUrl.concat("/").concat(dataMap.get("product_id").toString()));
+                        int productRcode = productResponseMap.getInt("rcode");
+                        int productQuantity = productResponseMap.getInt("quantity");
+                        int orderQuantity = dataMap.getInt("quantity");
 
-                    JSONObject responseMap = new JSONObject();
-                    
-                    //Send POST request to order service if it is a valid request
-                    if(userRcode == 200 && productRcode == 200 && productQuantity >= orderQuantity){
-                        JSONObject orderMap = new JSONObject();
-                        orderMap.put("command", "update");
-                        orderMap.put("id", productResponseMap.getInt("id"));
-                        int newProductQuantity = productQuantity - orderQuantity;
-                        orderMap.put("quantity", newProductQuantity);
-                        responseMap = ServiceUtil.sendPostRequest(iscsProductUrl, orderMap.toString());
-                    } else if(userRcode != 200 || productRcode != 200){
-                        responseMap.put("rcode", 404);
+                        JSONObject responseMap = new JSONObject();
+                        
+                        //Send POST request to order service if it is a valid request
+                        if(userRcode == 200 && productRcode == 200 && productQuantity >= orderQuantity){
+                            JSONObject orderMap = new JSONObject();
+                            orderMap.put("command", "update");
+                            orderMap.put("id", productResponseMap.getInt("id"));
+                            int newProductQuantity = productQuantity - orderQuantity;
+                            orderMap.put("quantity", newProductQuantity);
+                            responseMap = ServiceUtil.sendPostRequest(iscsProductUrl, orderMap.toString());
+                        } else if(userRcode != 200 || productRcode != 200){
+                            responseMap.put("rcode", 404);
+                        } else{
+                            responseMap.put("rcode", 401);
+                        }
+
+                        //Send a response back to client
+                        JSONObject clientResponseMap = new JSONObject();
+                        clientResponseMap.put("id", UUID.randomUUID());
+                        clientResponseMap.put("product_id", dataMap.getInt("product_id"));
+                        clientResponseMap.put("user_id", dataMap.getInt("user_id"));
+                        clientResponseMap.put("quantity", dataMap.getInt("quantity"));
+                        if(responseMap.get("rcode").equals(200)){
+                            clientResponseMap.put("status message", "Success");
+                            clientResponseMap.put("rcode", 200);
+                        } else if(responseMap.get("rcode").equals(404)){
+                            clientResponseMap.put("status message", "Invalid request");
+                            clientResponseMap.put("rcode", 404);
+                        } else{
+                            clientResponseMap.put("status message", "Exceeded quantity limit");
+                            clientResponseMap.put("rcode", 401);
+                        }
+
+                        ServiceUtil.sendResponse(exchange, clientResponseMap);
                     } else{
-                        responseMap.put("rcode", 401);
-                    }
-
-                    //Send a response back to client
-                    JSONObject clientResponseMap = new JSONObject();
-                    clientResponseMap.put("id", UUID.randomUUID());
-                    clientResponseMap.put("product_id", dataMap.getInt("product_id"));
-                    clientResponseMap.put("user_id", dataMap.getInt("user_id"));
-                    clientResponseMap.put("quantity", dataMap.getInt("quantity"));
-                    if(responseMap.get("rcode").equals(200)){
+                        JSONObject clientResponseMap = new JSONObject();
                         clientResponseMap.put("status message", "Success");
                         clientResponseMap.put("rcode", 200);
-                    } else if(responseMap.get("rcode").equals(404)){
-                        clientResponseMap.put("status message", "Invalid request");
-                        clientResponseMap.put("rcode", 404);
-                    } else{
-                        clientResponseMap.put("status message", "Exceeded quantity limit");
-                        clientResponseMap.put("rcode", 401);
+                        ServiceUtil.sendResponse(exchange, clientResponseMap);
                     }
-
-                    ServiceUtil.sendResponse(exchange, clientResponseMap);
 
 
                 } catch (Exception e) {
@@ -147,8 +154,13 @@ public class OrderService {
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
-                    String url = iscsUserUrl.concat(params);
-                    responseMap = ServiceUtil.sendGetRequest(url);
+
+                    if(ServiceUtil.isNumeric(params)){
+                        responseMap.put("rcode", "400");
+                    } else{
+                        String url = iscsUserUrl.concat(params);
+                        responseMap = ServiceUtil.sendGetRequest(url);
+                    }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
@@ -157,7 +169,12 @@ public class OrderService {
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    responseMap = ServiceUtil.sendPostRequest(iscsUserUrl, ServiceUtil.getRequestBody(exchange));
+
+                    String dataString = ServiceUtil.getRequestBody(exchange);
+                    JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
+                    if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidUser(dataMap)){
+                        responseMap = ServiceUtil.sendPostRequest(iscsUserUrl, ServiceUtil.getRequestBody(exchange));
+                    }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
@@ -188,8 +205,13 @@ public class OrderService {
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
-                    String url = iscsproductUrl.concat(params);
-                    responseMap = ServiceUtil.sendGetRequest(url);
+
+                    if(ServiceUtil.isNumeric(params)){
+                        responseMap.put("rcode", "400");
+                    } else{
+                        String url = iscsproductUrl.concat(params);
+                        responseMap = ServiceUtil.sendGetRequest(url);
+                    }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
@@ -198,7 +220,12 @@ public class OrderService {
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for product");
-                    responseMap = ServiceUtil.sendPostRequest(iscsproductUrl, ServiceUtil.getRequestBody(exchange));
+
+                    String dataString = ServiceUtil.getRequestBody(exchange);
+                    JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
+                    if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidProduct(dataMap)){
+                        responseMap = ServiceUtil.sendPostRequest(iscsproductUrl, ServiceUtil.getRequestBody(exchange));
+                    }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());

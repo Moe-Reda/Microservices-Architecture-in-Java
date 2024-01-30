@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -122,7 +124,7 @@ public class ServiceUtil {
     }
 
     public static JSONObject bodyToMap(String data) {
-        if(data.equals("{}")){
+        /* if(data.equals("{}")){
             return new JSONObject();
         }
         String[] intValues = {"id", "quantity", "product_id", "user_id"};
@@ -145,7 +147,8 @@ public class ServiceUtil {
                 map.put(keyValuePair[0], keyValuePair[1]);
             }
         }
-        return map;
+        return map; */
+        return new JSONObject(data);
     }
 
     public static void updateDB(String database, String field, String value, String id, Statement statement) throws SQLException {
@@ -156,5 +159,143 @@ public class ServiceUtil {
 
     public static ResultSet getQuery(String database, String params, Statement statement) throws SQLException {
         return statement.executeQuery("SELECT * FROM " + database + " WHERE id = " + params + ";");
+    }
+
+    public static boolean isNumeric(String str) {
+        try {
+            Double.parseDouble(str);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isJSON(String json) {
+        try {
+            new JSONObject(json);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isValidUser(JSONObject data){
+        // Check if all required fields are present
+        if (!data.has("command") ||
+            !data.has("id")) {
+            return false;
+        }
+
+        if(!data.getString("command").equals("update") && (
+            !data.has("username") ||
+            !data.has("email") ||
+            !data.has("password"))
+        ){
+            return false;
+        }
+        
+        // Check if any required field is blank
+        if (data.getString("command").isEmpty() ||
+            data.getString("id").isEmpty()) {
+            return false;
+        }
+
+        if(data.has("username")){
+            if(data.getString("username").isEmpty()){
+                return false;
+            }
+        }
+
+        if(data.has("email")){
+            if(data.getString("email").isEmpty()){
+                return false;
+            }
+        }
+
+        if(data.has("password")){
+            if(data.getString("password").isEmpty()){
+                return false;
+            }
+        }
+        
+        // Check for extra fields
+        if (data.length() > 5) {
+            return false;
+        }
+        
+        // No issues found, JSON object is valid
+        return true;
+    }
+
+    public static boolean isValidProduct(JSONObject data) {
+        // Check if all required fields are present
+        if (!data.has("command") ||
+            !data.has("id")) {
+            return false;
+        }
+
+        if(!data.getString("command").equals("update") && (
+            !data.has("name") ||
+            !data.has("description") ||
+            !data.has("price") ||
+            !data.has("quantity"))
+        ){
+            return false;
+        }
+        
+        // Check if any required field is blank
+        if (data.getString("command").isEmpty() ||
+            data.getString("id").isEmpty()) {
+            return false;
+        }
+
+        if(data.has("name")){
+            if(data.getString("name").isEmpty()){
+                return false;
+            }
+        }
+
+        if(data.has("description")){
+            if(data.getString("description").isEmpty()){
+                return false;
+            }
+        }
+
+        if(data.has("price")){
+            if(data.getString("price").isEmpty()){
+                return false;
+            }
+        }
+
+        if(data.has("quantity")){
+            if(data.getString("quantity").isEmpty()){
+                return false;
+            }
+        }
+        
+        // Check for extra fields
+        if (data.length() > 5) {
+            return false;
+        }
+        
+        // No issues found, JSON object is valid
+        return true;
+    }
+
+    public static boolean isValidOrder(JSONObject dataMap) {
+        // Check if all required fields are present
+        if (!dataMap.has("command") || !dataMap.has("product_id") ||
+            !dataMap.has("user_id") || !dataMap.has("quantity")) {
+            return false;
+        }
+
+        // Check if any field is blank
+        String command = dataMap.getString("command");
+        String productId = dataMap.getString("product_id");
+        String userId = dataMap.getString("user_id");
+        String quantity = dataMap.getString("quantity");
+
+        return !command.isEmpty() && !productId.isEmpty() &&
+               !userId.isEmpty() && !quantity.isEmpty();
     }
 }

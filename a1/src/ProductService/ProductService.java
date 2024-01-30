@@ -88,8 +88,13 @@ public class ProductService {
                     int index = clientUrl.indexOf("product") + "product".length() + 1;
                     String params = clientUrl.substring(index);
 
-                    //Execute query
-                    makeResponse(responseMap, params, statement);
+                    //Checking if the request is valid
+                    if(ServiceUtil.isNumeric(params)){
+                        responseMap.put("rcode", "400");
+                    } else{
+                        //Execute query
+                        makeResponse(responseMap, params, statement);
+                    }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
@@ -100,93 +105,97 @@ public class ProductService {
             else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for Product");
-                    JSONObject dataMap = ServiceUtil.bodyToMap(ServiceUtil.getRequestBody(exchange));
+                    String dataString = ServiceUtil.getRequestBody(exchange);
+                    JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
 
-                    //Handle create
-                    if(dataMap.get("command").equals("create")){
-                        System.out.println("Create an entry");
-                        if(!ServiceUtil.getQuery("products", dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
-                            //Create a new Product
-                            String command = String.format(
-                                                "INSERT INTO products\n" + 
-                                                "(id, name, description, price, quantity)\n" +
-                                                "VALUES\n" +
-                                                "(%s, \'%s\', \'%s\', %s, %s)",
-                                                dataMap.get("id"),
-                                                dataMap.get("name"),
-                                                dataMap.get("description"),
-                                                dataMap.get("price"),
-                                                dataMap.get("quantity")
-                                            );
-                            statement.execute(command);
-                            makeResponse(responseMap, dataMap.get("id").toString(), statement);
-                        } else{
-                            //Product already exists
-                            responseMap.put("rcode", "401");
-                        }
-                    }
+                    //Checking if it request is valid
+                    if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidProduct(dataMap)){
 
-                    //Handle update
-                    if(dataMap.get("command").equals("update")){
-                        System.out.println("Update an entry");
-                        if(ServiceUtil.getQuery("products", dataMap.get("id").toString(), statement).isBeforeFirst()){
-                            
-                            //Check if the name needs to be updated
-                            if(dataMap.has("name")){
-                                ServiceUtil.updateDB("products", "name", dataMap.get("name").toString(), dataMap.get("id").toString(), statement);
-                            }
-
-                             //Check if the description needs to be updated
-                            if(dataMap.has("description")){
-                                ServiceUtil.updateDB("products", "description", dataMap.get("description").toString(), dataMap.get("id").toString(), statement);
-                            }
-
-                             //Check if the price needs to be updated
-                            if(dataMap.has("price")){
-                                ServiceUtil.updateDB("products", "price", dataMap.get("price").toString(), dataMap.get("id").toString(), statement);
-                            }
-
-                             //Check if the quantity needs to be updated
-                            if(dataMap.has("quantity")){
-                                ServiceUtil.updateDB("products", "quantity", dataMap.get("quantity").toString(), dataMap.get("id").toString(), statement);
-                            }
-
-                            makeResponse(responseMap, dataMap.get("id").toString(), statement);
-                        } else{
-                            //Product does not exist
-                            responseMap.put("rcode", "404");
-                        }
-                    }
-
-                    //Handle delete
-                    if(dataMap.get("command").equals("delete")){
-                        System.out.println("Delete an entry");
-                        ResultSet resultSet = ServiceUtil.getQuery("products", dataMap.get("id").toString(), statement);
-                        if(resultSet.isBeforeFirst()){
-                            resultSet.next();
-                            //Authenticate
-                            System.out.println(resultSet.getString("name") + "=" + dataMap.get("name").toString());
-                            System.out.println(resultSet.getString("description") + "=" + dataMap.get("description").toString());
-                            System.out.println(resultSet.getString("price") + "=" + dataMap.get("price").toString());
-                            System.out.println(resultSet.getString("quantity") + "=" + dataMap.get("quantity").toString());
-                            if(resultSet.getString("name").equals(dataMap.get("name").toString()) &&
-                                resultSet.getString("description").equals(dataMap.get("description").toString()) &&
-                                resultSet.getString("price").equals(dataMap.get("price").toString()) &&
-                                resultSet.getString("quantity").equals(dataMap.get("quantity").toString())
-                            ){
-                                makeResponse(responseMap, dataMap.get("id").toString(), statement);
-                                String command = String.format("DELETE FROM products WHERE id = %s;", dataMap.get("id").toString());
+                        //Handle create
+                        if(dataMap.get("command").equals("create")){
+                            System.out.println("Create an entry");
+                            if(!ServiceUtil.getQuery("products", dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
+                                //Create a new Product
+                                String command = String.format(
+                                                    "INSERT INTO products\n" + 
+                                                    "(id, name, description, price, quantity)\n" +
+                                                    "VALUES\n" +
+                                                    "(%s, \'%s\', \'%s\', %s, %s)",
+                                                    dataMap.get("id"),
+                                                    dataMap.get("name"),
+                                                    dataMap.get("description"),
+                                                    dataMap.get("price"),
+                                                    dataMap.get("quantity")
+                                                );
                                 statement.execute(command);
+                                makeResponse(responseMap, dataMap.get("id").toString(), statement);
                             } else{
-                                //Authetication failed
+                                //Product already exists
                                 responseMap.put("rcode", "401");
                             }
-                        } else{
-                            //Product does not exist
-                            responseMap.put("rcode", "404");
+                        }
+
+                        //Handle update
+                        if(dataMap.get("command").equals("update")){
+                            System.out.println("Update an entry");
+                            if(ServiceUtil.getQuery("products", dataMap.get("id").toString(), statement).isBeforeFirst()){
+                                
+                                //Check if the name needs to be updated
+                                if(dataMap.has("name")){
+                                    ServiceUtil.updateDB("products", "name", dataMap.get("name").toString(), dataMap.get("id").toString(), statement);
+                                }
+
+                                //Check if the description needs to be updated
+                                if(dataMap.has("description")){
+                                    ServiceUtil.updateDB("products", "description", dataMap.get("description").toString(), dataMap.get("id").toString(), statement);
+                                }
+
+                                //Check if the price needs to be updated
+                                if(dataMap.has("price")){
+                                    ServiceUtil.updateDB("products", "price", dataMap.get("price").toString(), dataMap.get("id").toString(), statement);
+                                }
+
+                                //Check if the quantity needs to be updated
+                                if(dataMap.has("quantity")){
+                                    ServiceUtil.updateDB("products", "quantity", dataMap.get("quantity").toString(), dataMap.get("id").toString(), statement);
+                                }
+
+                                makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                            } else{
+                                //Product does not exist
+                                responseMap.put("rcode", "404");
+                            }
+                        }
+
+                        //Handle delete
+                        if(dataMap.get("command").equals("delete")){
+                            System.out.println("Delete an entry");
+                            ResultSet resultSet = ServiceUtil.getQuery("products", dataMap.get("id").toString(), statement);
+                            if(resultSet.isBeforeFirst()){
+                                resultSet.next();
+                                //Authenticate
+                                System.out.println(resultSet.getString("name") + "=" + dataMap.get("name").toString());
+                                System.out.println(resultSet.getString("description") + "=" + dataMap.get("description").toString());
+                                System.out.println(resultSet.getString("price") + "=" + dataMap.get("price").toString());
+                                System.out.println(resultSet.getString("quantity") + "=" + dataMap.get("quantity").toString());
+                                if(resultSet.getString("name").equals(dataMap.get("name").toString()) &&
+                                    resultSet.getString("description").equals(dataMap.get("description").toString()) &&
+                                    resultSet.getString("price").equals(dataMap.get("price").toString()) &&
+                                    resultSet.getString("quantity").equals(dataMap.get("quantity").toString())
+                                ){
+                                    makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                                    String command = String.format("DELETE FROM products WHERE id = %s;", dataMap.get("id").toString());
+                                    statement.execute(command);
+                                } else{
+                                    //Authetication failed
+                                    responseMap.put("rcode", "401");
+                                }
+                            } else{
+                                //Product does not exist
+                                responseMap.put("rcode", "404");
+                            }
                         }
                     }
-                    
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());

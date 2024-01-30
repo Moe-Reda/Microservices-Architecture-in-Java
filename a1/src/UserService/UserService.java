@@ -1,6 +1,7 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+
 import org.json.JSONObject;
 
 import java.io.*;
@@ -17,7 +18,7 @@ import java.sql.Statement;
 import docs.ServiceUtil;
 
 public class UserService {
-    static JSONObject jsonObject = new JSONObject();
+    static JSONObject data = new JSONObject();
     static Connection connection = null;
     static Statement statement = null;
 
@@ -89,8 +90,13 @@ public class UserService {
                     int index = clientUrl.indexOf("user") + "user".length() + 1;
                     String params = clientUrl.substring(index);
 
-                    //Execute query
-                    makeResponse(responseMap, params, statement);
+                    //Checking if the request is valid
+                    if(ServiceUtil.isNumeric(params)){
+                        responseMap.put("rcode", "400");
+                    } else{
+                        //Execute query
+                        makeResponse(responseMap, params, statement);
+                    }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
@@ -101,80 +107,85 @@ public class UserService {
             else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    JSONObject dataMap = ServiceUtil.bodyToMap(ServiceUtil.getRequestBody(exchange));
+                    String dataString = ServiceUtil.getRequestBody(exchange);
+                    JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
+                    if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidUser(dataMap)){
 
-                    //Handle create
-                    if(dataMap.get("command").equals("create")){
-                        System.out.println("Create an entry");
-                        if(!ServiceUtil.getQuery("users", dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
-                            //Create a new User
-                            String command = String.format(
-                                                "INSERT INTO users\n" + 
-                                                "(id, username, email, password)\n" +
-                                                "VALUES\n" +
-                                                "(%s, \'%s\', \'%s\', \'%s\')",
-                                                dataMap.get("id").toString(),
-                                                dataMap.get("username"),
-                                                dataMap.get("email"),
-                                                dataMap.get("password")
-                                            );
-                            statement.execute(command);
-                            makeResponse(responseMap, dataMap.get("id").toString(), statement);
-                        } else{
-                            //User already exists
-                            responseMap.put("rcode", "401");
-                        }
-                    }
-
-                    //Handle update
-                    if(dataMap.get("command").equals("update")){
-                        System.out.println("Update an entry");
-                        if(ServiceUtil.getQuery("users", dataMap.get("id").toString(), statement).isBeforeFirst()){
-                            
-                            //Check if the username needs to be updated
-                            if(dataMap.has("username")){
-                                ServiceUtil.updateDB("users", "username", dataMap.get("username").toString(), dataMap.get("id").toString(), statement);
-                            }
-
-                             //Check if the email needs to be updated
-                            if(dataMap.has("email")){
-                                ServiceUtil.updateDB("users", "email", dataMap.get("email").toString(), dataMap.get("id").toString(), statement);
-                            }
-
-                             //Check if the password needs to be updated
-                            if(dataMap.has("password")){
-                                ServiceUtil.updateDB("users", "password", dataMap.get("password").toString(), dataMap.get("id").toString(), statement);
-                            }
-
-                            makeResponse(responseMap, dataMap.get("id").toString(), statement);
-                        } else{
-                            //User does not exist
-                            responseMap.put("rcode", "404");
-                        }
-                    }
-
-                    //Handle delete
-                    if(dataMap.get("command").equals("delete")){
-                        System.out.println("Delete an entry");
-                        ResultSet resultSet = ServiceUtil.getQuery("users", dataMap.get("id").toString(), statement);
-                        if(resultSet.isBeforeFirst()){
-                            resultSet.next();
-                            //Authenticate
-                            if(resultSet.getString("username").equals(dataMap.get("username")) &&
-                                resultSet.getString("email").equals(dataMap.get("email")) &&
-                                resultSet.getString("password").equals(dataMap.get("password"))
-                            ){
-                                makeResponse(responseMap, dataMap.get("id").toString(), statement);
-                                String command = String.format("DELETE FROM users WHERE id = %s;", dataMap.get("id").toString());
+                        //Handle create
+                        if(dataMap.get("command").equals("create")){
+                            System.out.println("Create an entry");
+                            if(!ServiceUtil.getQuery("users", dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
+                                //Create a new User
+                                String command = String.format(
+                                                    "INSERT INTO users\n" + 
+                                                    "(id, username, email, password)\n" +
+                                                    "VALUES\n" +
+                                                    "(%s, \'%s\', \'%s\', \'%s\')",
+                                                    dataMap.get("id").toString(),
+                                                    dataMap.get("username"),
+                                                    dataMap.get("email"),
+                                                    dataMap.get("password")
+                                                );
                                 statement.execute(command);
+                                makeResponse(responseMap, dataMap.get("id").toString(), statement);
                             } else{
-                                //Authetication failed
+                                //User already exists
+                                responseMap.put("rcode", "401");
+                            }
+                        }
+
+                        //Handle update
+                        if(dataMap.get("command").equals("update")){
+                            System.out.println("Update an entry");
+                            if(ServiceUtil.getQuery("users", dataMap.get("id").toString(), statement).isBeforeFirst()){
+                                
+                                //Check if the username needs to be updated
+                                if(dataMap.has("username")){
+                                    ServiceUtil.updateDB("users", "username", dataMap.get("username").toString(), dataMap.get("id").toString(), statement);
+                                }
+
+                                //Check if the email needs to be updated
+                                if(dataMap.has("email")){
+                                    ServiceUtil.updateDB("users", "email", dataMap.get("email").toString(), dataMap.get("id").toString(), statement);
+                                }
+
+                                //Check if the password needs to be updated
+                                if(dataMap.has("password")){
+                                    ServiceUtil.updateDB("users", "password", dataMap.get("password").toString(), dataMap.get("id").toString(), statement);
+                                }
+
+                                makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                            } else{
+                                //User does not exist
                                 responseMap.put("rcode", "404");
                             }
-                        } else{
-                            //User does not exist
-                            responseMap.put("rcode", "404");
                         }
+
+                        //Handle delete
+                        if(dataMap.get("command").equals("delete")){
+                            System.out.println("Delete an entry");
+                            ResultSet resultSet = ServiceUtil.getQuery("users", dataMap.get("id").toString(), statement);
+                            if(resultSet.isBeforeFirst()){
+                                resultSet.next();
+                                //Authenticate
+                                if(resultSet.getString("username").equals(dataMap.get("username")) &&
+                                    resultSet.getString("email").equals(dataMap.get("email")) &&
+                                    resultSet.getString("password").equals(dataMap.get("password"))
+                                ){
+                                    makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                                    String command = String.format("DELETE FROM users WHERE id = %s;", dataMap.get("id").toString());
+                                    statement.execute(command);
+                                } else{
+                                    //Authetication failed
+                                    responseMap.put("rcode", "404");
+                                }
+                            } else{
+                                //User does not exist
+                                responseMap.put("rcode", "404");
+                            }
+                        }
+                    } else{
+                        responseMap.put("rcode", 400);
                     }
                     
                 } catch (Exception e) {
