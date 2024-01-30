@@ -4,7 +4,7 @@
 SRC_DIR="src"
 COMPILED_DIR="compiled"
 DOCS_DIR="docs"
-CLASSPATH="$DOCS_DIR/*"
+CLASSPATH="$DOCS_DIR/*:."
 
 # Ensure the compiled directory exists for each service
 mkdir -p $COMPILED_DIR/ISCS
