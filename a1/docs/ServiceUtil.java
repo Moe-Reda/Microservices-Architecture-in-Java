@@ -163,7 +163,8 @@ public class ServiceUtil {
 
     public static boolean isNumeric(String str) {
         try {
-            Double.parseDouble(str);
+            Double n = Double.parseDouble(str);
+            System.out.println("The number is " + String.valueOf(n));
         } catch (Exception e) {
             return false;
         }
