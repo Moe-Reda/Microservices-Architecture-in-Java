@@ -185,6 +185,7 @@ public class ServiceUtil {
             !data.has("id")) {
             return false;
         }
+        System.out.println("all required fields are present");
 
         if(!data.getString("command").equals("update") && (
             !data.has("username") ||
@@ -193,35 +194,41 @@ public class ServiceUtil {
         ){
             return false;
         }
+        System.out.println("all required fields are present 2");
         
         // Check if any required field is blank
         if (data.getString("command").isEmpty() ||
             !Integer.class.isInstance(data.get("id"))) {
             return false;
         }
+        System.out.println("Checked if command is blank and id is not int");
 
         if(data.has("username")){
             if(data.getString("username").isEmpty()){
                 return false;
             }
         }
+        System.out.println("Checked if username is blank");
 
         if(data.has("email")){
             if(data.getString("email").isEmpty()){
                 return false;
             }
         }
+        System.out.println("Checked if email is blank");
 
         if(data.has("password")){
             if(data.getString("password").isEmpty()){
                 return false;
             }
         }
+        System.out.println("Checked if password is blank");
         
         // Check for extra fields
         if (data.length() > 5) {
             return false;
         }
+        System.out.println("Checked if there are no extra fields");
         
         // No issues found, JSON object is valid
         return true;
