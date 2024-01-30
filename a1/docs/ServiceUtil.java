@@ -277,7 +277,7 @@ public class ServiceUtil {
         System.out.println("description is not blank");
 
         if(data.has("price")){
-            if(isNumeric(data.get("price").toString())){
+            if(!isNumeric(data.get("price").toString())){
                 return false;
             }
         }
