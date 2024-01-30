@@ -26,8 +26,7 @@ public class ServiceUtil {
         System.out.println("The response code is: " + responseMap.get("rcode"));
         int rcode = responseMap.getInt("rcode");
         responseMap.remove("rcode");
-        responseMap.put("Debug", "Silly goofy messages");
-        System.out.println("The response is: " + responseMap.toString());
+        System.out.println("The response sent back is: " + responseMap.toString());
         exchange.sendResponseHeaders(rcode, responseMap.toString().length()); //Change for final version
         OutputStream os = exchange.getResponseBody();
         os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
@@ -42,6 +41,7 @@ public class ServiceUtil {
         connection.setRequestMethod("GET");
 
         int responseCode = connection.getResponseCode();
+        System.out.println("The response code received is: " + String.valueOf(responseCode));
         JSONObject responseMap = getResponse(connection);
         responseMap.put("rcode", responseCode);
 
