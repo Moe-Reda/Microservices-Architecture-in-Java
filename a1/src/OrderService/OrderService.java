@@ -173,7 +173,7 @@ public class OrderService {
                     String dataString = ServiceUtil.getRequestBody(exchange);
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
                     if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidUser(dataMap)){
-                        responseMap = ServiceUtil.sendPostRequest(iscsUserUrl, ServiceUtil.getRequestBody(exchange));
+                        responseMap = ServiceUtil.sendPostRequest(iscsUserUrl, dataString);
                     }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
@@ -224,7 +224,7 @@ public class OrderService {
                     String dataString = ServiceUtil.getRequestBody(exchange);
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
                     if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidProduct(dataMap)){
-                        responseMap = ServiceUtil.sendPostRequest(iscsproductUrl, ServiceUtil.getRequestBody(exchange));
+                        responseMap = ServiceUtil.sendPostRequest(iscsproductUrl, dataString);
                     }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
