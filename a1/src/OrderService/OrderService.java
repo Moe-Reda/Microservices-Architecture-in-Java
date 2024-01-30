@@ -155,7 +155,7 @@ public class OrderService {
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
 
-                    if(ServiceUtil.isNumeric(params)){
+                    if(!ServiceUtil.isNumeric(params)){
                         responseMap.put("rcode", "400");
                     } else{
                         String url = iscsUserUrl.concat(params);
@@ -206,7 +206,7 @@ public class OrderService {
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
 
-                    if(ServiceUtil.isNumeric(params)){
+                    if(!ServiceUtil.isNumeric(params)){
                         responseMap.put("rcode", "400");
                     } else{
                         String url = iscsproductUrl.concat(params);

@@ -91,7 +91,7 @@ public class UserService {
                     String params = clientUrl.substring(index);
 
                     //Checking if the request is valid
-                    if(ServiceUtil.isNumeric(params)){
+                    if(!ServiceUtil.isNumeric(params)){
                         responseMap.put("rcode", "400");
                     } else{
                         //Execute query
