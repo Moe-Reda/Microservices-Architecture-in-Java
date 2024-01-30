@@ -82,10 +82,10 @@ def send_request(api_url, request):
     try:
         headers = requests.utils.default_headers()
         if request[1] in ['info', 'get']:
-            print("Sending GET request to", api_url)
+            print("Sending a GET request to", api_url)
             response = requests.get(api_url + "/" + str(request[2]), headers=headers)
         else:
-            print("Sending POST request to", api_url)
+            print("Sending a POST request to", api_url)
             data = format_data(request)
             response = requests.post(api_url, data=str(data), headers=headers)
         print(f"Request: {request} | Response: {response.text}")

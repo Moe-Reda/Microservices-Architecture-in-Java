@@ -50,7 +50,7 @@ start_iscs() {
 # Function to start the Order service
 start_order_service() {
     echo "Starting Order Service..."
-    java -cp "$COMPILED_DIR/OrderService:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/OrderService/OrderService config.json
+    java -cp "$COMPILED_DIR/OrderService:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/OrderServiceOrderService config.json
 }
 
 # Function to start the Workload Parser
