@@ -134,22 +134,22 @@ public class ProductService {
                         if(ServiceUtil.getQuery("products", dataMap.get("id").toString(), statement).isBeforeFirst()){
                             
                             //Check if the name needs to be updated
-                            if(dataMap.get("name") != null){
+                            if(dataMap.has("name")){
                                 ServiceUtil.updateDB("name", dataMap.get("name").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the description needs to be updated
-                            if(dataMap.get("description") != null){
+                            if(dataMap.has("description")){
                                 ServiceUtil.updateDB("description", dataMap.get("description").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the price needs to be updated
-                            if(dataMap.get("price") != null){
+                            if(dataMap.has("price")){
                                 ServiceUtil.updateDB("price", dataMap.get("price").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the quantity needs to be updated
-                            if(dataMap.get("quantity") != null){
+                            if(dataMap.has("quantity")){
                                 ServiceUtil.updateDB("quantity", dataMap.get("quantity").toString(), dataMap.get("id").toString(), statement);
                             }
 
