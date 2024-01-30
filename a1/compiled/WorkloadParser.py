@@ -2,37 +2,67 @@ import requests
 import json
 import sys
 
-def format_data(data):
-    if data[0] == 'USER':
-        data = {
-            'command': data[1],
-            'id': data[2],
-            'username': data[3],
-            'email': data[4],
-            'password': data[5]
-        }
-    elif data[0] == 'PRODUCT':
-        data = {
-            'command': data[1],
-            'name': data[2],
-            'description': data[3],
-            'price': data[4],
-            'quantity': data[5]
-        }
-    elif data[0] == 'ORDER':
-        if len(data) == 5:
+def format_data(line):
+    if line[0] == 'USER':
+        if line[1] == 'update':
             data = {
-                'command': data[1],
-                'product_id': data[2],
-                'user_id': data[3],
-                'quantity': data[4],
+                'command': line[1],
+                'id': int(line[2])
+            }
+            for token in line[3:]:
+                key_value = token.split(':')
+                if key_value[0] == "quantity":
+                    data[key_value[0]] = int(key_value[1])
+                elif key_value[0] == "price":
+                    data[key_value[0]] = float(key_value[1])
+                else:
+                    data[key_value[0]] = key_value[1]     
+        else:
+            data = {
+                'command': line[1],
+                'id': int(line[2]),
+                'username': line[3],
+                'email': line[4],
+                'password': line[5]
+            }
+    elif line[0] == 'PRODUCT':
+        if line[1] == 'update':
+            data = {
+                'command': line[1],
+                'id': int(line[2])
+            }
+            for token in line[3:]:
+                key_value = token.split(':')
+                if key_value[0] == "quantity":
+                    data[key_value[0]] = int(key_value[1])
+                elif key_value[0] == "price":
+                    data[key_value[0]] = float(key_value[1])
+                else:
+                    data[key_value[0]] = key_value[1]
+            
+        else:
+            data = {
+                'command': line[1],
+                'id': int(line[2]),
+                'name': line[3],
+                'description': line[4],
+                'price': float(line[5]),
+                'quantity': int(line[6])
+            }
+    elif line[0] == 'ORDER':
+        if len(line) == 5:
+            data = {
+                'command': line[1],
+                'product_id': int(line[2]),
+                'user_id': int(line[3]),
+                'quantity': int(line[4]),
             }
         else:
             data = {
-                'command': data[1],
-                'product_id': data[2],
+                'command': line[1],
+                'product_id': int(line[2]),
                 'user_id': 1,
-                'quantity': data[3],
+                'quantity': int(line[3]),
             }
     return data
 

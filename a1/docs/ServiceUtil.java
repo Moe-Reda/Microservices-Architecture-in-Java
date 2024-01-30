@@ -154,26 +154,7 @@ public class ServiceUtil {
         statement.execute(command);
     }
 
-    public static void makeResponse(JSONObject responseMap, String params, Statement statement) throws SQLException, NoSuchAlgorithmException {
-            ResultSet result = getQuery(params, statement);
-
-            //Check if user is found
-            if (!result.isBeforeFirst() ) {    
-                responseMap.put("rcode", "404"); 
-            } else{ 
-                //Make a response
-                responseMap.put("rcode", "200");
-                result.next();   
-                responseMap.put("id", params);
-                responseMap.put("username", result.getString("username"));
-                responseMap.put("email", result.getString("email"));
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] encodedhash = digest.digest(result.getString("password").getBytes(StandardCharsets.UTF_8));
-                responseMap.put("password", encodedhash.toString());
-            }
-        }
-
-    public static ResultSet getQuery(String params, Statement statement) throws SQLException {
-        return statement.executeQuery("SELECT * FROM users WHERE id = " + params + ";");
+    public static ResultSet getQuery(String database, String params, Statement statement) throws SQLException {
+        return statement.executeQuery("SELECT * FROM " + database + " WHERE id = " + params + ";");
     }
 }

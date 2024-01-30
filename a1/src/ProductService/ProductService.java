@@ -6,11 +6,15 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+
+import docs.ServiceUtil;
 
 public class ProductService {
     static JSONObject jsonObject = new JSONObject();
@@ -19,180 +23,199 @@ public class ProductService {
 
     public static void main(String[] args) throws IOException {
         // create a database connection
-        try {
+        try{
             connection = DriverManager.getConnection("jdbc:sqlite:product.db");
             statement = connection.createStatement();
             // SQL statement for creating a new table
             String sql = "CREATE TABLE IF NOT EXISTS products (\n"
-                    + " id integer PRIMARY KEY,\n"
-                    + " name text NOT NULL,\n"
-                    + " description text,\n"
-                    + " price real NOT NULL,\n"
-                    + " quantity integer NOT NULL\n"
-                    + ");";
+            + "	id integer PRIMARY KEY,\n"
+            + "	name varchar(255),\n"
+            + "	description varchar(255),\n"
+            + "	price float\n"
+            + "	quantity integer\n"
+            + ");";
             statement.execute(sql);
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
+        } catch(SQLException e){
+          // if the error message is "out of memory",
+          // it probably means no database file is found
+          System.err.println(e.getMessage());
         }
 
-        // Read config.json
+        //Read config.json
         String path = "../../".concat(args[0]);
         String jsonString = "";
         try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
             String line;
             while ((line = reader.readLine()) != null) {
+                // Process each line
                 jsonString = jsonString.concat(line);
-                jsonString = jsonString.replace(" ", "");
+                jsonString = jsonString.replace(" ","");
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        // Map representing config.json
-        jsonObject = new JSONObject(jsonString);
+        //Map representing config.json
+        JSONObject jsonObject = new JSONObject(jsonString);
+
         int port = jsonObject.getJSONObject("ProductService").getInt("port");
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Set up context for /product request
+        // Set up context for /Product request
         server.createContext("/product", new ProductHandler());
 
+
         server.setExecutor(null); // creates a default executor
+
         server.start();
-        System.out.println("Product Service started on port " + port);
+
+        System.out.println("Server started on port " + port);
     }
 
     static class ProductHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            String response = "";
-            String method = exchange.getRequestMethod();
-            if ("POST".equals(method)) {
-                // Handle POST request for product
-                try {
-                    String requestBody = getRequestBody(exchange);
-                    JSONObject productData = new JSONObject(requestBody);
-                    String command = productData.getString("command");
+            //Print client info for debugging
+            ServiceUtil.printClientInfo(exchange);
 
-                    switch (command) {
-                        case "create":
-                            createProduct(productData);
-                            response = "Product created successfully";
-                            break;
-                        case "update":
-                            updateProduct(productData);
-                            response = "Product updated successfully";
-                            break;
-                        case "delete":
-                            deleteProduct(productData.getInt("id"));
-                            response = "Product deleted successfully";
-                            break;
-                        default:
-                            response = "Invalid command";
-                            exchange.sendResponseHeaders(400, response.length());
-                            break;
+            // Handle GET request for /Product
+            JSONObject responseMap = new JSONObject();
+            responseMap.put("rcode", "500");
+            if ("GET".equals(exchange.getRequestMethod())){
+                try {
+                    System.out.println("It is a GET request for Product");
+
+                    //Get parameter
+                    String clientUrl = exchange.getRequestURI().toString();
+                    int index = clientUrl.indexOf("product") + "product".length() + 1;
+                    String params = clientUrl.substring(index);
+
+                    //Execute query
+                    makeResponse(responseMap, params, statement);
+                } catch (Exception e) {
+                    ServiceUtil.sendResponse(exchange, responseMap);
+                    System.out.println(e.getMessage());
+                    throw new RuntimeException(e);
+                }
+            }
+            //Handle POST request for /Product 
+            else if("POST".equals(exchange.getRequestMethod())){
+                try {
+                    System.out.println("It is a POST request for Product");
+                    JSONObject dataMap = ServiceUtil.bodyToMap(ServiceUtil.getRequestBody(exchange));
+
+                    //Handle create
+                    if(dataMap.get("command").equals("create")){
+                        System.out.println("Create an entry");
+                        if(!ServiceUtil.getQuery("products", dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
+                            //Create a new Product
+                            String command = String.format(
+                                                "INSERT INTO products\n" + 
+                                                "(id, name, description, price, quantity)\n" +
+                                                "VALUES\n" +
+                                                "(%s, \'%s\', \'%s\', %s, %s)",
+                                                dataMap.get("id"),
+                                                dataMap.get("name"),
+                                                dataMap.get("description"),
+                                                dataMap.get("price"),
+                                                dataMap.get("quantity")
+                                            );
+                            statement.execute(command);
+                            makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                        } else{
+                            //Product already exists
+                            responseMap.put("rcode", "401");
+                        }
                     }
+
+                    //Handle update
+                    if(dataMap.get("command").equals("update")){
+                        System.out.println("Update an entry");
+                        if(ServiceUtil.getQuery("products", dataMap.get("id").toString(), statement).isBeforeFirst()){
+                            
+                            //Check if the name needs to be updated
+                            if(dataMap.get("name") != null){
+                                ServiceUtil.updateDB("name", dataMap.get("name").toString(), dataMap.get("id").toString(), statement);
+                            }
+
+                             //Check if the description needs to be updated
+                            if(dataMap.get("description") != null){
+                                ServiceUtil.updateDB("description", dataMap.get("description").toString(), dataMap.get("id").toString(), statement);
+                            }
+
+                             //Check if the price needs to be updated
+                            if(dataMap.get("price") != null){
+                                ServiceUtil.updateDB("price", dataMap.get("price").toString(), dataMap.get("id").toString(), statement);
+                            }
+
+                             //Check if the quantity needs to be updated
+                            if(dataMap.get("quantity") != null){
+                                ServiceUtil.updateDB("quantity", dataMap.get("quantity").toString(), dataMap.get("id").toString(), statement);
+                            }
+
+                            makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                        } else{
+                            //Product does not exist
+                            responseMap.put("rcode", "404");
+                        }
+                    }
+
+                    //Handle delete
+                    if(dataMap.get("command").equals("delete")){
+                        System.out.println("Delete an entry");
+                        ResultSet resultSet = ServiceUtil.getQuery("products", dataMap.get("id").toString(), statement);
+                        if(resultSet.isBeforeFirst()){
+                            resultSet.next();
+                            //Authenticate
+                            if(resultSet.getString("name").equals(dataMap.get("name")) &&
+                                resultSet.getString("description").equals(dataMap.get("description")) &&
+                                resultSet.getString("price").equals(dataMap.get("price")) &&
+                                resultSet.getString("quantity").equals(dataMap.get("quantity"))
+                            ){
+                                makeResponse(responseMap, dataMap.get("id").toString(), statement);
+                                String command = String.format("DELETE FROM Products WHERE id = %s;", dataMap.get("id").toString());
+                                statement.execute(command);
+                            } else{
+                                //Authetication failed
+                                responseMap.put("rcode", "404");
+                            }
+                        } else{
+                            //Product does not exist
+                            responseMap.put("rcode", "404");
+                        }
+                    }
+                    
                 } catch (Exception e) {
-                    response = "Internal server error";
-                    exchange.sendResponseHeaders(500, response.length());
-                    e.printStackTrace();
+                    ServiceUtil.sendResponse(exchange, responseMap);
+                    System.out.println(e.getMessage());
+                    throw new RuntimeException(e);
                 }
-            } else if ("GET".equals(method)) {
-                // Handle GET request for product
-                try {
-                    String productId = exchange.getRequestURI().getPath().split("/")[2];
-                    response = getProduct(Integer.parseInt(productId));
-                } catch (Exception e) {
-                    response = "Internal server error";
-                    exchange.sendResponseHeaders(500, response.length());
-                    e.printStackTrace();
-                }
-            } else {
-                // Method not supported
-                response = "HTTP method not allowed";
-                exchange.sendResponseHeaders(405, response.length());
             }
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes(StandardCharsets.UTF_8));
-            os.close();
+
+            ServiceUtil.sendResponse(exchange, responseMap);
+
+
         }
+
     }
 
-    private static String getRequestBody(HttpExchange exchange) throws IOException {
-        try (InputStream is = exchange.getRequestBody();
-             InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-             BufferedReader br = new BufferedReader(isr)) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
+    public static void makeResponse(JSONObject responseMap, String params, Statement statement) throws SQLException, NoSuchAlgorithmException {
+            ResultSet result = ServiceUtil.getQuery("products", params, statement);
+
+            //Check if product is found
+            if (!result.isBeforeFirst() ) {    
+                responseMap.put("rcode", "404"); 
+            } else{ 
+                //Make a response
+                responseMap.put("rcode", "200");
+                result.next();   
+                responseMap.put("id", params);
+                responseMap.put("name", result.getString("name"));
+                responseMap.put("description", result.getString("description"));
+                responseMap.put("price", result.getString("price"));
+                responseMap.put("quantity", result.getString("quantity"));
             }
-            return sb.toString();
-        }
     }
-    
-    // Helper methods to interact with the database for CRUD operations.
-    private static void createProduct(JSONObject productData) throws Exception {
-        String sql = "INSERT INTO products (name, description, price, quantity) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, productData.getString("name"));
-            pstmt.setString(2, productData.getString("description"));
-            pstmt.setDouble(3, productData.getDouble("price"));
-            pstmt.setInt(4, productData.getInt("quantity"));
-            pstmt.executeUpdate();
-        }
-    }
-    
-    private static void updateProduct(JSONObject productData) throws Exception {
-        String sql = "UPDATE products SET name = ?, description = ?, price = ?, quantity = ? WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, productData.getString("name"));
-            pstmt.setString(2, productData.getString("description"));
-            pstmt.setDouble(3, productData.getDouble("price"));
-            pstmt.setInt(4, productData.getInt("quantity"));
-            pstmt.setInt(5, productData.getInt("id"));
-            pstmt.executeUpdate();
-        }
-    }
-    
-    private static void deleteProduct(int productId) throws Exception {
-        String sql = "DELETE FROM products WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, productId);
-            pstmt.executeUpdate();
-        }
-    }
-    
-    private static String getProduct(int productId) throws Exception {
-        String sql = "SELECT * FROM products WHERE id = ?";
-        JSONObject product = new JSONObject();
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, productId);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                product.put("id", rs.getInt("id"));
-                product.put("name", rs.getString("name"));
-                product.put("description", rs.getString("description"));
-                product.put("price", rs.getDouble("price"));
-                product.put("quantity", rs.getInt("quantity"));
-            } else {
-                product.put("message", "Product not found");
-            }
-        }
-        return product.toString();
-    }
-    
-    // This helper method sends a response back to the client.
-    private static void sendResponse(HttpExchange exchange, String response) throws IOException {
-        exchange.sendResponseHeaders(200, response.getBytes(StandardCharsets.UTF_8).length);
-        try (OutputStream os = exchange.getResponseBody()) {
-            os.write(response.getBytes(StandardCharsets.UTF_8));
-        }
-    }
-    
-    // This helper method prints the client info for debugging.
-    private static void printClientInfo(HttpExchange exchange) {
-        System.out.println("Client Address: " + exchange.getRemoteAddress().toString());
-        System.out.println("Request Method: " + exchange.getRequestMethod());
-        System.out.println("Request URI: " + exchange.getRequestURI().toString());
-    }
+
 }
+
