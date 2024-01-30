@@ -101,7 +101,7 @@ public class ISCS {
             // Handle POST request for /test
             String productIP = jsonObject.getJSONObject("ProductService").get("ip").toString();
             int productPort = jsonObject.getJSONObject("ProductService").getInt("port");
-            String productServiceUrl = productIP.concat(":").concat(String.valueOf(productPort)).concat("/user");
+            String productServiceUrl = productIP.concat(":").concat(String.valueOf(productPort)).concat("/product");
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
