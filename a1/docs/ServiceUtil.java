@@ -284,7 +284,7 @@ public class ServiceUtil {
         System.out.println("price is a float");
 
         if(data.has("quantity")){
-            if(Integer.class.isInstance(data.get("quantity"))){
+            if(!Integer.class.isInstance(data.get("quantity"))){
                 return false;
             }
         }
