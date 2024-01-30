@@ -32,25 +32,25 @@ compile() {
 # Function to start the User service
 start_user_service() {
     echo "Starting User Service..."
-    java -cp "$COMPILED_DIR/UserService:$COMPILED_DIR:$CLASSPATH" UserService config.json
+    java -cp "$COMPILED_DIR/UserService:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/UserService/UserService config.json
 }
 
 # Function to start the Product service
 start_product_service() {
     echo "Starting Product Service..."
-    java -cp "$COMPILED_DIR/ProductService:$COMPILED_DIR:$CLASSPATH" ProductService config.json
+    java -cp "$COMPILED_DIR/ProductService:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/ProductService/ProductService config.json
 }
 
 # Function to start the ISCS
 start_iscs() {
     echo "Starting Inter-service Communication Service (ISCS)..."
-    java -cp "$COMPILED_DIR/ISCS:$COMPILED_DIR:$CLASSPATH" ISCS config.json
+    java -cp "$COMPILED_DIR/ISCS:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/ISCS/ISCS config.json
 }
 
 # Function to start the Order service
 start_order_service() {
     echo "Starting Order Service..."
-    java -cp "$COMPILED_DIR/OrderService:$COMPILED_DIR:$CLASSPATH" OrderService config.json
+    java -cp "$COMPILED_DIR/OrderService:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/OrderService/OrderService config.json
 }
 
 # Function to start the Workload Parser
