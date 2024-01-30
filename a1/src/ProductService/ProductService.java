@@ -173,11 +173,11 @@ public class ProductService {
                                 resultSet.getString("quantity").equals(dataMap.get("quantity"))
                             ){
                                 makeResponse(responseMap, dataMap.get("id").toString(), statement);
-                                String command = String.format("DELETE FROM Products WHERE id = %s;", dataMap.get("id").toString());
+                                String command = String.format("DELETE FROM products WHERE id = %s;", dataMap.get("id").toString());
                                 statement.execute(command);
                             } else{
                                 //Authetication failed
-                                responseMap.put("rcode", "404");
+                                responseMap.put("rcode", "401");
                             }
                         } else{
                             //Product does not exist
