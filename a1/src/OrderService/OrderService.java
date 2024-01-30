@@ -88,7 +88,7 @@ public class OrderService {
                     //Send POST request to order service if it is a valid request
                     if(userRcode == 200 && productRcode == 200 && productQuantity >= orderQuantity){
                         JSONObject orderMap = new JSONObject();
-                        orderMap.put("command", productResponseMap.get("update"));
+                        orderMap.put("command", "update");
                         orderMap.put("id", productResponseMap.getInt("product_id"));
                         int newProductQuantity = productQuantity - orderQuantity;
                         orderMap.put("quantity", newProductQuantity);
