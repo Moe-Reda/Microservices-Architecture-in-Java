@@ -15,7 +15,7 @@ public class OrderService {
 
     public static void main(String[] args) throws IOException {
         //Read config.json
-        String path = "../../".concat(args[0]);
+        String path = args[0];
         String jsonString = "";
         try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
             String line;
