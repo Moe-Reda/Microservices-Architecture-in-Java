@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import docs.Util;
+import docs.ServiceUtil;
 
 public class ISCS {
     static JSONObject jsonObject = new JSONObject();
@@ -48,7 +48,7 @@ public class ISCS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            Util.printClientInfo(exchange);
+            ServiceUtil.printClientInfo(exchange);
 
             System.out.println("Getting user service url");
             String userIP = jsonObject.getJSONObject("UserService").get("ip").toString();
@@ -67,24 +67,24 @@ public class ISCS {
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
                     String url = userServiceUrl.concat(params);
-                    responseMap = Util.sendGetRequest(url);
+                    responseMap = ServiceUtil.sendGetRequest(url);
                 } catch (Exception e) {
-                    Util.sendResponse(exchange, responseMap);
+                    ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    responseMap = Util.sendPostRequest(userServiceUrl, Util.getRequestBody(exchange));
+                    responseMap = ServiceUtil.sendPostRequest(userServiceUrl, ServiceUtil.getRequestBody(exchange));
                 } catch (Exception e) {
-                    Util.sendResponse(exchange, responseMap);
+                    ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
             System.out.println("Sending a response back");
-            Util.sendResponse(exchange, responseMap);
+            ServiceUtil.sendResponse(exchange, responseMap);
 
 
         }
@@ -95,7 +95,7 @@ public class ISCS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            Util.printClientInfo(exchange);
+            ServiceUtil.printClientInfo(exchange);
 
             // Handle POST request for /test
             String productIP = jsonObject.getJSONObject("ProductService").get("ip").toString();
@@ -110,24 +110,24 @@ public class ISCS {
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
                     String url = productServiceUrl.concat(params);
-                    responseMap = Util.sendGetRequest(url);
+                    responseMap = ServiceUtil.sendGetRequest(url);
                 } catch (Exception e) {
-                    Util.sendResponse(exchange, responseMap);
+                    ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for product");
-                    responseMap = Util.sendPostRequest(productServiceUrl, Util.getRequestBody(exchange));
+                    responseMap = ServiceUtil.sendPostRequest(productServiceUrl, ServiceUtil.getRequestBody(exchange));
                 } catch (Exception e) {
-                    Util.sendResponse(exchange, responseMap);
+                    ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
                     throw new RuntimeException(e);
                 }
             }
 
-            Util.sendResponse(exchange, responseMap);
+            ServiceUtil.sendResponse(exchange, responseMap);
 
         }
     }
