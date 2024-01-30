@@ -57,7 +57,7 @@ start_order_service() {
 start_workload_parser() {
     echo "Starting Workload Parser with workload file: $1"
     # Assuming WorkloadParser.py is not a compiled Java class but a script in the root directory
-    python WorkloadParser.py "$1" config.json
+    python3 WorkloadParser.py "$1" config.json
 }
 
 # Check the command-line argument and call the appropriate function
