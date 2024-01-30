@@ -14,7 +14,7 @@ mkdir -p $COMPILED_DIR/UserService
 
 # Function to compile all Java files including ServiceUtil.java
 compile() {
-    echo "Compiling ServiceUtil and other Java files..."
+    echo "Compiling Java files..."
     # Compile ServiceUtil
     javac -cp "$CLASSPATH" $DOCS_DIR/ServiceUtil.java -d $DOCS_DIR
 
