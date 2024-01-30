@@ -19,13 +19,13 @@ compile() {
     javac -cp "$CLASSPATH" $DOCS_DIR/ServiceUtil.java -d $DOCS_DIR
 
     # Compile ISCS
-    javac -cp ".:$CLASSPATH" $SRC_DIR/ISCS/ISCS.java -d $COMPILED_DIR/ISCS
+    javac -cp ".:$COMPILED_DIR/ISCS:$CLASSPATH" $SRC_DIR/ISCS/ISCS.java -d $COMPILED_DIR/ISCS
     # Compile OrderService
-    javac -cp ".:$CLASSPATH" $SRC_DIR/OrderService/OrderService.java -d $COMPILED_DIR/OrderService
+    javac -cp ".:$COMPILED_DIR/OrderService:$CLASSPATH" $SRC_DIR/OrderService/OrderService.java -d $COMPILED_DIR/OrderService
     # Compile ProductService
-    javac -cp ".:$CLASSPATH" $SRC_DIR/ProductService/ProductService.java -d $COMPILED_DIR/ProductService
+    javac -cp ".:$COMPILED_DIR/ProductService:$CLASSPATH" $SRC_DIR/ProductService/ProductService.java -d $COMPILED_DIR/ProductService
     # Compile UserService
-    javac -cp ".:$CLASSPATH" $SRC_DIR/UserService/UserService.java -d $COMPILED_DIR/UserService
+    javac -cp ".:$COMPILED_DIR/UserService:$CLASSPATH" $SRC_DIR/UserService/UserService.java -d $COMPILED_DIR/UserService
     echo "Compilation completed."
 }
 
