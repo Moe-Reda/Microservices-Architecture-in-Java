@@ -71,7 +71,9 @@ public class ServiceUtil {
     }
 
     public static JSONObject getResponse(HttpURLConnection connection) throws IOException {
+        System.out.println("There is an issue here");
         BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        System.out.println("or here");
         String inputLine;
         StringBuilder response = new StringBuilder();
 
