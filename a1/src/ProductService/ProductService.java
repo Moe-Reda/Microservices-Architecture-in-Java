@@ -89,7 +89,7 @@ public class ProductService {
                     String params = clientUrl.substring(index);
 
                     //Checking if the request is valid
-                    if(!ServiceUtil.isNumeric(params.substring(1))){
+                    if(!ServiceUtil.isNumeric(params)){
                         responseMap.put("rcode", "400");
                     } else{
                         //Execute query
