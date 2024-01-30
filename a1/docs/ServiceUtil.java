@@ -42,7 +42,7 @@ public class ServiceUtil {
 
         int responseCode = connection.getResponseCode();
         System.out.println("The response code received is: " + String.valueOf(responseCode));
-        JSONObject responseMap = getResponse(connection);
+        JSONObject responseMap = getResponse(connection, responseCode);
         System.out.println("The response is received");
         responseMap.put("rcode", responseCode);
         System.out.println("The response code added to map");
@@ -64,15 +64,20 @@ public class ServiceUtil {
         }
 
         int responseCode = connection.getResponseCode();
-        JSONObject responseMap = getResponse(connection);
+        JSONObject responseMap = getResponse(connection, responseCode);
         responseMap.put("rcode", responseCode);
 
         return responseMap;
     }
 
-    public static JSONObject getResponse(HttpURLConnection connection) throws IOException {
+    public static JSONObject getResponse(HttpURLConnection connection, int rcode) throws IOException {
         System.out.println("There is an issue here");
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        BufferedReader in;
+        if(rcode == 200){
+            in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        } else{
+            in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+        }
         System.out.println("or here");
         String inputLine;
         StringBuilder response = new StringBuilder();
