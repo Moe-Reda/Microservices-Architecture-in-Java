@@ -125,7 +125,7 @@ public class ServiceUtil {
         if(data.equals("{}")){
             return new JSONObject();
         }
-        String[] intValues = {"id", "quantity", "price", "product_id", "user_id"};
+        String[] intValues = {"id", "quantity", "product_id", "user_id"};
         System.out.println("Splitting response into key value apirs");
         String[] keyValueList = data.replace(" ", "")
                                     .replace("}", "")
@@ -139,7 +139,9 @@ public class ServiceUtil {
             String[] keyValuePair = keyValue.replace("\'", "").split(":");
             if(Arrays.asList(intValues).contains(keyValuePair[0])){
                 map.put(keyValuePair[0], Integer.parseInt(keyValuePair[1]));
-            } else{
+            } else if(keyValuePair[0].equals("price")){
+                map.put(keyValuePair[0], Float.parseFloat(keyValuePair[1]));
+            }else{
                 map.put(keyValuePair[0], keyValuePair[1]);
             }
         }
