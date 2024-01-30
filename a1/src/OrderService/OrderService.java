@@ -89,7 +89,7 @@ public class OrderService {
                     if(userRcode == 200 && productRcode == 200 && productQuantity >= orderQuantity){
                         JSONObject orderMap = new JSONObject();
                         orderMap.put("command", "update");
-                        orderMap.put("id", productResponseMap.getInt("product_id"));
+                        orderMap.put("id", productResponseMap.getInt("id"));
                         int newProductQuantity = productQuantity - orderQuantity;
                         orderMap.put("quantity", newProductQuantity);
                         responseMap = ServiceUtil.sendPostRequest(iscsProductUrl, orderMap.toString());
