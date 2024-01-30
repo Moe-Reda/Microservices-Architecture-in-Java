@@ -270,7 +270,7 @@ public class ServiceUtil {
         }
 
         if(data.has("price")){
-            if(Double.class.isInstance(data.get("price"))){
+            if(isNumeric(data.get("price").toString())){
                 return false;
             }
         }
