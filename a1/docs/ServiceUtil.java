@@ -124,6 +124,9 @@ public class ServiceUtil {
     }
 
     public static JSONObject bodyToMap(String data) {
+        if(data.equals("{}")){
+            return new JSONObject();
+        }
         String[] intValues = {"id", "quantity", "price", "product_id", "user_id"};
         System.out.println("Splitting response into key value apirs");
         String[] keyValueList = data.replace(" ", "")
