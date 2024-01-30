@@ -28,7 +28,7 @@ public class ServiceUtil {
         responseMap.remove("rcode");
         responseMap.put("Debug", "Silly goofy messages");
         System.out.println("The response is: " + responseMap.toString());
-        exchange.sendResponseHeaders(200, responseMap.toString().length()); //Change for final version
+        exchange.sendResponseHeaders(rcode, responseMap.toString().length()); //Change for final version
         OutputStream os = exchange.getResponseBody();
         os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
         os.close();
@@ -145,7 +145,7 @@ public class ServiceUtil {
             } else{ 
                 //Make a response
                 responseMap.put("rcode", "200");
-                result.first();   
+                result.next();   
                 responseMap.put("id", params);
                 responseMap.put("username", result.getString("username"));
                 responseMap.put("email", result.getString("email"));

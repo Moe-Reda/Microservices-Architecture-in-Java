@@ -102,6 +102,7 @@ public class UserService {
 
                     //Handle create
                     if(dataMap.get("command").equals("create")){
+                        System.out.println("Create an entry");
                         if(!ServiceUtil.getQuery(dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
                             //Create a new User
                             String command = String.format(
@@ -124,6 +125,7 @@ public class UserService {
 
                     //Handle update
                     if(dataMap.get("command").equals("update")){
+                        System.out.println("Update an entry");
                         if(ServiceUtil.getQuery(dataMap.get("id").toString(), statement).isBeforeFirst()){
                             
                             //Check if the username needs to be updated
@@ -150,6 +152,7 @@ public class UserService {
 
                     //Handle delete
                     if(dataMap.get("command").equals("delete")){
+                        System.out.println("Delete an entry");
                         if(ServiceUtil.getQuery(dataMap.get("id").toString(), statement).isBeforeFirst()){
                             //Check if the username needs to be updated
                             ServiceUtil.makeResponse(responseMap, dataMap.get("id").toString(), statement);
