@@ -167,10 +167,14 @@ public class ProductService {
                         if(resultSet.isBeforeFirst()){
                             resultSet.next();
                             //Authenticate
-                            if(resultSet.getString("name").equals(dataMap.get("name")) &&
-                                resultSet.getString("description").equals(dataMap.get("description")) &&
-                                resultSet.getString("price").equals(dataMap.get("price")) &&
-                                resultSet.getString("quantity").equals(dataMap.get("quantity"))
+                            System.out.println(resultSet.getString("name") + "=" + dataMap.get("name").toString());
+                            System.out.println(resultSet.getString("description") + "=" + dataMap.get("description").toString());
+                            System.out.println(resultSet.getString("price") + "=" + dataMap.get("price").toString());
+                            System.out.println(resultSet.getString("quantity") + "=" + dataMap.get("quantity").toString());
+                            if(resultSet.getString("name").equals(dataMap.get("name").toString()) &&
+                                resultSet.getString("description").equals(dataMap.get("description").toString()) &&
+                                resultSet.getString("price").equals(dataMap.get("price").toString()) &&
+                                resultSet.getString("quantity").equals(dataMap.get("quantity").toString())
                             ){
                                 makeResponse(responseMap, dataMap.get("id").toString(), statement);
                                 String command = String.format("DELETE FROM products WHERE id = %s;", dataMap.get("id").toString());
