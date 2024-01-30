@@ -19,38 +19,38 @@ compile() {
     javac -cp "$CLASSPATH" $DOCS_DIR/ServiceUtil.java -d $DOCS_DIR
 
     # Compile ISCS
-    javac -cp ".:$COMPILED_DIR/ISCS:$CLASSPATH" $SRC_DIR/ISCS/ISCS.java -d $COMPILED_DIR/ISCS
+    javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ISCS/ISCS.java -d $COMPILED_DIR/ISCS
     # Compile OrderService
-    javac -cp ".:$COMPILED_DIR/OrderService:$CLASSPATH" $SRC_DIR/OrderService/OrderService.java -d $COMPILED_DIR/OrderService
+    javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/OrderService/OrderService.java -d $COMPILED_DIR/OrderService
     # Compile ProductService
-    javac -cp ".:$COMPILED_DIR/ProductService:$CLASSPATH" $SRC_DIR/ProductService/ProductService.java -d $COMPILED_DIR/ProductService
+    javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ProductService/ProductService.java -d $COMPILED_DIR/ProductService
     # Compile UserService
-    javac -cp ".:$COMPILED_DIR/UserService:$CLASSPATH" $SRC_DIR/UserService/UserService.java -d $COMPILED_DIR/UserService
+    javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/UserService/UserService.java -d $COMPILED_DIR/UserService
     echo "Compilation completed."
 }
 
 # Function to start the User service
 start_user_service() {
     echo "Starting User Service..."
-    java -cp ".:$COMPILED_DIR/UserService:$CLASSPATH" $COMPILED_DIR/UserService/UserService config.json
+    java -cp ".:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/UserService/UserService config.json
 }
 
 # Function to start the Product service
 start_product_service() {
     echo "Starting Product Service..."
-    java -cp ".:$COMPILED_DIR/ProductService:$CLASSPATH" $COMPILED_DIR/ProductService/ProductService config.json
+    java -cp ".:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/ProductService/ProductService config.json
 }
 
 # Function to start the ISCS
 start_iscs() {
     echo "Starting Inter-service Communication Service (ISCS)..."
-    java -cp ".:$COMPILED_DIR/ISCS:$CLASSPATH" $COMPILED_DIR/ISCS/ISCS config.json
+    java -cp ".:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/ISCS/ISCS config.json
 }
 
 # Function to start the Order service
 start_order_service() {
     echo "Starting Order Service..."
-    java -cp ".:$COMPILED_DIR/OrderService:$CLASSPATH" $COMPILED_DIR/OrderService/OrderService config.json
+    java -cp ".:$COMPILED_DIR:$CLASSPATH" $COMPILED_DIR/OrderService/OrderService config.json
 }
 
 # Function to start the Workload Parser
