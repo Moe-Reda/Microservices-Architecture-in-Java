@@ -68,6 +68,7 @@ public class ISCS {
                     String params = clientUrl.substring(index);
                     String url = userServiceUrl.concat(params);
                     responseMap = ServiceUtil.sendGetRequest(url);
+                    System.out.println("The response code in the map before responding is: " + String.valueOf(responseMap.getInt("rcode")));
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());

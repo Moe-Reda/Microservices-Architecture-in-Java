@@ -23,10 +23,10 @@ import com.sun.net.httpserver.HttpExchange;
 
 public class ServiceUtil {
     public static void sendResponse(HttpExchange exchange, JSONObject responseMap) throws IOException {
-        System.out.println("The response code is: " + responseMap.get("rcode"));
+        System.out.println("The response code sent back is: is: " + responseMap.get("rcode"));
         int rcode = responseMap.getInt("rcode");
         responseMap.remove("rcode");
-        System.out.println("The response sent back is: " + responseMap.toString());
+        System.out.println("The response: " + responseMap.toString());
         exchange.sendResponseHeaders(rcode, responseMap.toString().length()); //Change for final version
         OutputStream os = exchange.getResponseBody();
         os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
