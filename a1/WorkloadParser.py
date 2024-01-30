@@ -97,7 +97,7 @@ def main():
         print("Usage: python WorkloadParser.py <requests_file> <config_file>")
         sys.exit(1)
 
-    requests_file = "../" + sys.argv[1]
+    requests_file = sys.argv[1]
     config_file = sys.argv[2]
 
     # Read config
