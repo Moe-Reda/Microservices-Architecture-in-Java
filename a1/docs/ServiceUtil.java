@@ -241,6 +241,7 @@ public class ServiceUtil {
             !data.has("id")) {
             return false;
         }
+        System.out.println("command and id are present");
 
         if(!data.getString("command").equals("update") && (
             !data.has("name") ||
@@ -250,6 +251,8 @@ public class ServiceUtil {
         ){
             return false;
         }
+
+        System.out.println("all required fields are present");
         
         // Check if any required field is blank
         if (data.getString("command").isEmpty() ||
@@ -257,34 +260,41 @@ public class ServiceUtil {
             return false;
         }
 
+        System.out.println("command and id are goodt");
+
         if(data.has("name")){
             if(data.getString("name").isEmpty()){
                 return false;
             }
         }
+        System.out.println("name is not blank");
 
         if(data.has("description")){
             if(data.getString("description").isEmpty()){
                 return false;
             }
         }
+        System.out.println("description is not blank");
 
         if(data.has("price")){
             if(isNumeric(data.get("price").toString())){
                 return false;
             }
         }
+        System.out.println("price is a float");
 
         if(data.has("quantity")){
             if(Integer.class.isInstance(data.get("quantity"))){
                 return false;
             }
         }
+        System.out.println("quantity is an int");
         
         // Check for extra fields
         if (data.length() > 6) {
             return false;
         }
+        System.out.println("there are no extra fields");
         
         // No issues found, JSON object is valid
         return true;

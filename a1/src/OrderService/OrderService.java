@@ -223,7 +223,9 @@ public class OrderService {
 
                     String dataString = ServiceUtil.getRequestBody(exchange);
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
+                    System.out.println("before sending the post request");
                     if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidProduct(dataMap)){
+                        System.out.println("before sending the post request");
                         responseMap = ServiceUtil.sendPostRequest(iscsproductUrl, dataString);
                     }
                 } catch (Exception e) {
