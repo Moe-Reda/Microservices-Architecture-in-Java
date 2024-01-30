@@ -196,7 +196,7 @@ public class ServiceUtil {
         
         // Check if any required field is blank
         if (data.getString("command").isEmpty() ||
-            data.getString("id").isEmpty()) {
+            !Integer.class.isInstance(data.get("id"))) {
             return false;
         }
 
@@ -245,7 +245,7 @@ public class ServiceUtil {
         
         // Check if any required field is blank
         if (data.getString("command").isEmpty() ||
-            data.getString("id").isEmpty()) {
+            !Integer.class.isInstance(data.get("id"))) {
             return false;
         }
 
@@ -262,19 +262,19 @@ public class ServiceUtil {
         }
 
         if(data.has("price")){
-            if(data.getString("price").isEmpty()){
+            if(Double.class.isInstance(data.get("price"))){
                 return false;
             }
         }
 
         if(data.has("quantity")){
-            if(data.getString("quantity").isEmpty()){
+            if(Integer.class.isInstance(data.get("quantity"))){
                 return false;
             }
         }
         
         // Check for extra fields
-        if (data.length() > 5) {
+        if (data.length() > 6) {
             return false;
         }
         
@@ -291,11 +291,16 @@ public class ServiceUtil {
 
         // Check if any field is blank
         String command = dataMap.getString("command");
-        String productId = dataMap.getString("product_id");
-        String userId = dataMap.getString("user_id");
-        String quantity = dataMap.getString("quantity");
+        int productId, userId, quantity;
 
-        return !command.isEmpty() && !productId.isEmpty() &&
-               !userId.isEmpty() && !quantity.isEmpty();
+        try {
+            productId = dataMap.getInt("product_id");
+            userId = dataMap.getInt("user_id");
+            quantity = dataMap.getInt("quantity");
+        } catch (Exception e) {
+            return false; // If any field is not an integer, return false
+        }
+
+        return !command.isEmpty();
     }
 }
