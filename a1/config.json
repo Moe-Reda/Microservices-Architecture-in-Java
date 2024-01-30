@@ -8,7 +8,7 @@
         "ip": "127.0.0.1"
     }   ,
     "ProductService": {
-        "port": 15000,
+        "port": 15090,
         "ip": "127.0.0.1"
     }   ,
     "InterServiceCommunication": {
