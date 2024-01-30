@@ -148,9 +148,9 @@ public class ServiceUtil {
         return map;
     }
 
-    public static void updateDB(String field, String value, String id, Statement statement) throws SQLException {
+    public static void updateDB(String database, String field, String value, String id, Statement statement) throws SQLException {
         String command;
-        command = String.format("UPDATE users SET %s = \'%s\' WHERE id = %s", field, value, id);
+        command = String.format("UPDATE " + database + " SET %s = \'%s\' WHERE id = %s", field, value, id);
         statement.execute(command);
     }
 

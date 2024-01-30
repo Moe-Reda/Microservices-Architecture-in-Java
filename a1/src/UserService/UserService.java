@@ -133,17 +133,17 @@ public class UserService {
                             
                             //Check if the username needs to be updated
                             if(dataMap.has("username")){
-                                ServiceUtil.updateDB("username", dataMap.get("username").toString(), dataMap.get("id").toString(), statement);
+                                ServiceUtil.updateDB("users", "username", dataMap.get("username").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the email needs to be updated
                             if(dataMap.has("email")){
-                                ServiceUtil.updateDB("email", dataMap.get("email").toString(), dataMap.get("id").toString(), statement);
+                                ServiceUtil.updateDB("users", "email", dataMap.get("email").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the password needs to be updated
                             if(dataMap.has("password")){
-                                ServiceUtil.updateDB("password", dataMap.get("password").toString(), dataMap.get("id").toString(), statement);
+                                ServiceUtil.updateDB("users", "password", dataMap.get("password").toString(), dataMap.get("id").toString(), statement);
                             }
 
                             makeResponse(responseMap, dataMap.get("id").toString(), statement);

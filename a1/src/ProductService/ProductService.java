@@ -135,22 +135,22 @@ public class ProductService {
                             
                             //Check if the name needs to be updated
                             if(dataMap.has("name")){
-                                ServiceUtil.updateDB("name", dataMap.get("name").toString(), dataMap.get("id").toString(), statement);
+                                ServiceUtil.updateDB("products", "name", dataMap.get("name").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the description needs to be updated
                             if(dataMap.has("description")){
-                                ServiceUtil.updateDB("description", dataMap.get("description").toString(), dataMap.get("id").toString(), statement);
+                                ServiceUtil.updateDB("products", "description", dataMap.get("description").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the price needs to be updated
                             if(dataMap.has("price")){
-                                ServiceUtil.updateDB("price", dataMap.get("price").toString(), dataMap.get("id").toString(), statement);
+                                ServiceUtil.updateDB("products", "price", dataMap.get("price").toString(), dataMap.get("id").toString(), statement);
                             }
 
                              //Check if the quantity needs to be updated
                             if(dataMap.has("quantity")){
-                                ServiceUtil.updateDB("quantity", dataMap.get("quantity").toString(), dataMap.get("id").toString(), statement);
+                                ServiceUtil.updateDB("products", "quantity", dataMap.get("quantity").toString(), dataMap.get("id").toString(), statement);
                             }
 
                             makeResponse(responseMap, dataMap.get("id").toString(), statement);
