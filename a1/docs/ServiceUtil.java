@@ -43,7 +43,9 @@ public class ServiceUtil {
         int responseCode = connection.getResponseCode();
         System.out.println("The response code received is: " + String.valueOf(responseCode));
         JSONObject responseMap = getResponse(connection);
+        System.out.println("The response received");
         responseMap.put("rcode", responseCode);
+        System.out.println("The response code added to map");
 
         return responseMap;
     }
