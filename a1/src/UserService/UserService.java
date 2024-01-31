@@ -228,7 +228,6 @@ public class UserService {
             // JDBC connection parameters for save.db database
             String saveUrl = "jdbc:sqlite:compiled/UserService/save.db";
             Connection saveConnection = null;
-            ResultSet resultSet = null;
 
             try {
                 // Connect to save.db database (SQLite)
@@ -253,7 +252,6 @@ public class UserService {
             } finally {
                 // Close connections
                 try {
-                    if (resultSet != null) resultSet.close();
                     if (saveConnection != null) saveConnection.close();
                     statement.close();
                     connection.close();
