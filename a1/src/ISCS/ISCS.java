@@ -168,6 +168,7 @@ public class ISCS {
                     response.put("productServiceResponse", productResponse);
                     response.put("rcode", 200);
                 } catch (Exception e) {
+                    System.out.println(e.getMessage());
                     response.put("error", "Failed to forward shutdown command");
                     response.put("rcode", 500);
                 }
@@ -210,6 +211,7 @@ public class ISCS {
                     response.put("productServiceResponse", productResponse);
                     response.put("rcode", 200);
                 } catch (Exception e) {
+                    System.out.println(e.getMessage());
                     response.put("error", "Failed to forward restart command");
                     response.put("rcode", 500);
                 }

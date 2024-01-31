@@ -292,7 +292,7 @@ public class OrderService {
                 String restartCommand = command.toString();
     
                 // URL for ISCS restart endpoint
-                String iscsRestartUrl = "http://" + iscsIp + ":" + iscsPort + "/restart";
+                String iscsRestartUrl = iscsIp + ":" + iscsPort + "/restart";
     
                 try {
                     // Forwarding the restart command to ISCS

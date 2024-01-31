@@ -64,6 +64,7 @@ public class ServiceUtil {
     public static JSONObject sendPostRequest(String url, String postData) throws Exception {
         URI apiUri = new URI("http://".concat(url));
         URL apiUrl = apiUri.toURL();
+        System.out.println(apiUrl.toString());
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
