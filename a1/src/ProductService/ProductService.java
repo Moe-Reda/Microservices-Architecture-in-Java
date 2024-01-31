@@ -112,6 +112,9 @@ public class ProductService {
                 try {
                     System.out.println("It is a POST request for Product");
                     String dataString = ServiceUtil.getRequestBody(exchange);
+
+                    System.out.println("The request body: " + dataString);
+
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
 
                     //Checking if it request is valid
@@ -180,10 +183,6 @@ public class ProductService {
                             if(resultSet.isBeforeFirst()){
                                 resultSet.next();
                                 //Authenticate
-                                System.out.println(resultSet.getString("name") + "=" + dataMap.get("name").toString());
-                                System.out.println(resultSet.getString("description") + "=" + dataMap.get("description").toString());
-                                System.out.println(resultSet.getString("price") + "=" + dataMap.get("price").toString());
-                                System.out.println(resultSet.getString("quantity") + "=" + dataMap.get("quantity").toString());
                                 if(resultSet.getString("name").equals(dataMap.get("name").toString()) &&
                                     resultSet.getString("description").equals(dataMap.get("description").toString()) &&
                                     resultSet.getString("price").equals(dataMap.get("price").toString()) &&

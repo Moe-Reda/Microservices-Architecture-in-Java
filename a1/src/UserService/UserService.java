@@ -113,6 +113,9 @@ public class UserService {
                 try {
                     System.out.println("It is a POST request for user");
                     String dataString = ServiceUtil.getRequestBody(exchange);
+
+                    System.out.println("The request body: " + dataString);
+                    
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
                     if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidUser(dataMap)){
 

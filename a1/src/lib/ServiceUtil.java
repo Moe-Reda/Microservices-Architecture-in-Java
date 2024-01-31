@@ -26,10 +26,8 @@ public class ServiceUtil {
      * @throws IOException
      */
     public static void sendResponse(HttpExchange exchange, JSONObject responseMap) throws IOException {
-        System.out.println("The response code sent back is: is: " + responseMap.get("rcode"));
         int rcode = responseMap.getInt("rcode");
         responseMap.remove("rcode");
-        System.out.println("The response: " + responseMap.toString());
         exchange.sendResponseHeaders(rcode, responseMap.toString().length()); //Change for final version
         OutputStream os = exchange.getResponseBody();
         os.write(responseMap.toString().getBytes(StandardCharsets.UTF_8));
@@ -45,16 +43,12 @@ public class ServiceUtil {
     public static JSONObject sendGetRequest(String url) throws Exception {
         URI apiUri = new URI("http://".concat(url));
         URL apiUrl = apiUri.toURL();
-        System.out.println("Connecting to: " + url);
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
         connection.setRequestMethod("GET");
 
         int responseCode = connection.getResponseCode();
-        System.out.println("The response code received is: " + String.valueOf(responseCode));
         JSONObject responseMap = getResponse(connection, responseCode);
-        System.out.println("The response is received");
         responseMap.put("rcode", responseCode);
-        System.out.println("The response code added to map");
 
         return responseMap;
     }
@@ -70,7 +64,6 @@ public class ServiceUtil {
     public static JSONObject sendPostRequest(String url, String postData) throws Exception {
         URI apiUri = new URI("http://".concat(url));
         URL apiUrl = apiUri.toURL();
-        System.out.println("Connecting to: " + url);
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
@@ -96,24 +89,18 @@ public class ServiceUtil {
      * @throws IOException
      */
     public static JSONObject getResponse(HttpURLConnection connection, int rcode) throws IOException {
-        System.out.println("There is an issue here");
         BufferedReader in;
         if(rcode == 200){
             in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         } else{
             in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
         }
-        System.out.println("or here");
         String inputLine;
         StringBuilder response = new StringBuilder();
-
-        System.out.println("Reading response");
 
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
         }
-
-        System.out.println("Response read");
 
         in.close();
         return bodyToMap(response.toString());
@@ -203,7 +190,6 @@ public class ServiceUtil {
     public static boolean isNumeric(String str) {
         try {
             Double n = Double.parseDouble(str);
-            System.out.println("The number is " + String.valueOf(n));
         } catch (Exception e) {
             return false;
         }
@@ -235,7 +221,6 @@ public class ServiceUtil {
             !data.has("id")) {
             return false;
         }
-        System.out.println("all required fields are present");
 
         if(!data.getString("command").equals("update") && (
             !data.has("username") ||
@@ -244,41 +229,35 @@ public class ServiceUtil {
         ){
             return false;
         }
-        System.out.println("all required fields are present 2");
         
         // Check if any required field is blank
         if (data.getString("command").isEmpty() ||
             !Integer.class.isInstance(data.get("id"))) {
             return false;
         }
-        System.out.println("Checked if command is blank and id is not int");
 
         if(data.has("username")){
             if(data.getString("username").isEmpty()){
                 return false;
             }
         }
-        System.out.println("Checked if username is blank");
 
         if(data.has("email")){
             if(data.getString("email").isEmpty()){
                 return false;
             }
         }
-        System.out.println("Checked if email is blank");
 
         if(data.has("password")){
             if(data.getString("password").isEmpty()){
                 return false;
             }
         }
-        System.out.println("Checked if password is blank");
         
         // Check for extra fields
         if (data.length() > 5) {
             return false;
         }
-        System.out.println("Checked if there are no extra fields");
         
         // No issues found, JSON object is valid
         return true;
@@ -295,7 +274,6 @@ public class ServiceUtil {
             !data.has("id")) {
             return false;
         }
-        System.out.println("command and id are present");
 
         if(!data.getString("command").equals("update") && (
             !data.has("name") ||
@@ -305,8 +283,6 @@ public class ServiceUtil {
         ){
             return false;
         }
-
-        System.out.println("all required fields are present");
         
         // Check if any required field is blank
         if (data.getString("command").isEmpty() ||
@@ -314,41 +290,34 @@ public class ServiceUtil {
             return false;
         }
 
-        System.out.println("command and id are goodt");
-
         if(data.has("name")){
             if(data.getString("name").isEmpty()){
                 return false;
             }
         }
-        System.out.println("name is not blank");
 
         if(data.has("description")){
             if(data.getString("description").isEmpty()){
                 return false;
             }
         }
-        System.out.println("description is not blank");
 
         if(data.has("price")){
             if(!isNumeric(data.get("price").toString())){
                 return false;
             }
         }
-        System.out.println("price is a float");
 
         if(data.has("quantity")){
             if(!Integer.class.isInstance(data.get("quantity"))){
                 return false;
             }
         }
-        System.out.println("quantity is an int");
         
         // Check for extra fields
         if (data.length() > 6) {
             return false;
         }
-        System.out.println("there are no extra fields");
         
         // No issues found, JSON object is valid
         return true;
