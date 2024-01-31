@@ -51,6 +51,8 @@ public class OrderService {
         // Set up context for /product request
         server.createContext("/product", new ProductHandler());
 
+        server.createContext("/shutdown", new ShutdownHandler());
+        server.createContext("/restart", new RestartHandler());
 
         server.setExecutor(null); // creates a default executor
 
@@ -247,4 +249,67 @@ public class OrderService {
         }
     }
 
+    static class ShutdownHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            JSONObject response = new JSONObject();
+            if ("POST".equals(exchange.getRequestMethod())) {
+                JSONObject command = new JSONObject();
+                command.put("command", "shutdown");
+                String shutdownCommand = command.toString();
+    
+                // URL for ISCS shutdown endpoint
+                String iscsShutdownUrl = "http://" + iscsIp + ":" + iscsPort + "/shutdown";
+    
+                try {
+                    // Forwarding the shutdown command to ISCS
+                    JSONObject iscsResponse = ServiceUtil.sendPostRequest(iscsShutdownUrl, shutdownCommand);
+    
+                    // Constructing response for the OrderService shutdown handler
+                    response.put("command", "shutdown");
+                    response.put("status", "command forwarded to ISCS");
+                    response.put("iscsResponse", iscsResponse);
+                    response.put("rcode", 200); // HTTP status code for OK
+    
+                } catch (Exception e) {
+                    response.put("error", "Failed to forward shutdown command to ISCS");
+                    response.put("rcode", 500); // HTTP status code for Internal Server Error
+                }
+    
+                ServiceUtil.sendResponse(exchange, response);
+            }
+        }
+    }
+    
+    static class RestartHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            JSONObject response = new JSONObject();
+            if ("POST".equals(exchange.getRequestMethod())) {
+                JSONObject command = new JSONObject();
+                command.put("command", "restart");
+                String restartCommand = command.toString();
+    
+                // URL for ISCS restart endpoint
+                String iscsRestartUrl = "http://" + iscsIp + ":" + iscsPort + "/restart";
+    
+                try {
+                    // Forwarding the restart command to ISCS
+                    JSONObject iscsResponse = ServiceUtil.sendPostRequest(iscsRestartUrl, restartCommand);
+    
+                    // Constructing response for the OrderService restart handler
+                    response.put("command", "restart");
+                    response.put("status", "command forwarded to ISCS");
+                    response.put("iscsResponse", iscsResponse);
+                    response.put("rcode", 200); // HTTP status code for OK
+    
+                } catch (Exception e) {
+                    response.put("error", "Failed to forward restart command to ISCS");
+                    response.put("rcode", 500); // HTTP status code for Internal Server Error
+                }
+    
+                ServiceUtil.sendResponse(exchange, response);
+            }
+        }
+    }    
 }

@@ -43,6 +43,8 @@ public class ISCS {
         // Set up context for /product request
         server.createContext("/product", new ProductHandler());
 
+        server.createContext("/shutdown", new ShutdownHandler());
+        server.createContext("/restart", new RestartHandler());
 
         server.setExecutor(null); // creates a default executor
 
@@ -132,5 +134,88 @@ public class ISCS {
 
         }
     }
-}
+    
+    static class ShutdownHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            JSONObject response = new JSONObject();
+            if ("POST".equals(exchange.getRequestMethod())) {
+                JSONObject command = new JSONObject();
+                command.put("command", "shutdown");
+                String shutdownCommand = command.toString();
+                
+                String userIP = jsonObject.getJSONObject("UserService").get("ip").toString();
+                int userPort = jsonObject.getJSONObject("UserService").getInt("port");
 
+                String productIP = jsonObject.getJSONObject("ProductService").get("ip").toString();
+                int productPort = jsonObject.getJSONObject("ProductService").getInt("port");
+
+                // URLs for UserService and ProductService shutdown endpoints
+                String userServiceUrl = userIP + ":" + userPort + "/shutdown";
+                String productServiceUrl = productIP + ":" + productPort + "/shutdown";
+    
+                try {
+                    // Forwarding the shutdown command to UserService
+                    JSONObject userResponse = ServiceUtil.sendPostRequest(userServiceUrl, shutdownCommand);
+    
+                    // Forwarding the shutdown command to ProductService
+                    JSONObject productResponse = ServiceUtil.sendPostRequest(productServiceUrl, shutdownCommand);
+    
+                    // Constructing response for the ISCS shutdown handler
+                    response.put("command", "shutdown");
+                    response.put("status", "commands forwarded");
+                    response.put("userServiceResponse", userResponse);
+                    response.put("productServiceResponse", productResponse);
+                    response.put("rcode", 200);
+                } catch (Exception e) {
+                    response.put("error", "Failed to forward shutdown command");
+                    response.put("rcode", 500);
+                }
+    
+                ServiceUtil.sendResponse(exchange, response);
+            }
+        }
+    }
+    
+    static class RestartHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            JSONObject response = new JSONObject();
+            if ("POST".equals(exchange.getRequestMethod())) {
+                JSONObject command = new JSONObject();
+                command.put("command", "restart");
+                String restartCommand = command.toString();
+
+                String userIP = jsonObject.getJSONObject("UserService").get("ip").toString();
+                int userPort = jsonObject.getJSONObject("UserService").getInt("port");
+
+                String productIP = jsonObject.getJSONObject("ProductService").get("ip").toString();
+                int productPort = jsonObject.getJSONObject("ProductService").getInt("port");
+
+                // URLs for UserService and ProductService restart endpoints
+                String userServiceUrl = userIP + ":" + userPort + "/restart";
+                String productServiceUrl = productIP + ":" + productPort + "/restart";
+    
+                try {
+                    // Forwarding the restart command to UserService
+                    JSONObject userResponse = ServiceUtil.sendPostRequest(userServiceUrl, restartCommand);
+    
+                    // Forwarding the restart command to ProductService
+                    JSONObject productResponse = ServiceUtil.sendPostRequest(productServiceUrl, restartCommand);
+    
+                    // Constructing response for the ISCS restart handler
+                    response.put("command", "restart");
+                    response.put("status", "commands forwarded");
+                    response.put("userServiceResponse", userResponse);
+                    response.put("productServiceResponse", productResponse);
+                    response.put("rcode", 200);
+                } catch (Exception e) {
+                    response.put("error", "Failed to forward restart command");
+                    response.put("rcode", 500);
+                }
+    
+                ServiceUtil.sendResponse(exchange, response);
+            }
+        }
+    }
+}
