@@ -1,18 +1,18 @@
 {
   "UserService": {
-        "port": 13915,
+        "port": 13925,
         "ip": "127.0.0.1"
     }   ,
     "OrderService": {
-        "port": 13341,
+        "port": 13331,
         "ip": "127.0.0.1"
     }   ,
     "ProductService": {
-        "port": 13051,
+        "port": 13041,
         "ip": "127.0.0.1"
     }   ,
     "InterServiceCommunication": {
-        "port": 13978,
+        "port": 13958,
         "ip": "127.0.0.1"
     }   
 }
