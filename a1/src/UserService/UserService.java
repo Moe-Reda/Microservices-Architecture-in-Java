@@ -261,7 +261,7 @@ public class UserService {
                     e.printStackTrace();
                 }
                 ServiceUtil.sendResponse(exchange, responseMap);
-                System.exit(0);
+                if(responseMap.getInt("rcode") == 200) System.exit(0);
             }
         }
     }
@@ -346,8 +346,6 @@ public class UserService {
         PreparedStatement selectStatement = srcConnection.prepareStatement("SELECT * FROM users");
         ResultSet resultSet = selectStatement.executeQuery();
         
-
-        System.out.println("The result set: " + resultSet.toString());
 
         // Insert data into user table in save.db database
         while (resultSet.next()) {

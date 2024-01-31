@@ -162,11 +162,7 @@ public class ISCS {
                     JSONObject productResponse = ServiceUtil.sendPostRequest(productServiceUrl, shutdownCommand);
     
                     // Constructing response for the ISCS shutdown handler
-                    response.put("command", "shutdown");
-                    response.put("status", "commands forwarded");
-                    response.put("userServiceResponse", userResponse);
-                    response.put("productServiceResponse", productResponse);
-                    response.put("rcode", 200);
+                    if(userResponse.getInt("rcode") == 200 && productResponse.getInt("rcode") == 200) response.put("rcode", 200);
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                     response.put("error", "Failed to forward shutdown command");
@@ -174,7 +170,7 @@ public class ISCS {
                 }
     
                 ServiceUtil.sendResponse(exchange, response);
-                System.exit(0);
+                if(response.getInt("rcode") == 200) System.exit(0);
             }
         }
     }

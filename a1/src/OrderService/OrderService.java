@@ -130,7 +130,7 @@ public class OrderService {
                         ServiceUtil.sendResponse(exchange, clientResponseMap);
                     } else{
                         JSONObject clientResponseMap = new JSONObject();
-                        clientResponseMap.put("status message", "Success");
+                        clientResponseMap.put("status message", "Invalid payload");
                         clientResponseMap.put("rcode", 200);
                         ServiceUtil.sendResponse(exchange, clientResponseMap);
                     }
@@ -254,22 +254,15 @@ public class OrderService {
         public void handle(HttpExchange exchange) throws IOException {
             JSONObject response = new JSONObject();
             if ("POST".equals(exchange.getRequestMethod())) {
-                JSONObject command = new JSONObject();
-                command.put("command", "shutdown");
-                String shutdownCommand = command.toString();
-    
-                // URL for ISCS shutdown endpoint
+               // URL for ISCS shutdown endpoint
                 String iscsShutdownUrl = iscsIp + ":" + iscsPort + "/shutdown";
     
                 try {
                     // Forwarding the shutdown command to ISCS
-                    JSONObject iscsResponse = ServiceUtil.sendPostRequest(iscsShutdownUrl, shutdownCommand);
+                    JSONObject iscsResponse = ServiceUtil.sendPostRequest(iscsShutdownUrl, "{}");
     
                     // Constructing response for the OrderService shutdown handler
-                    response.put("command", "shutdown");
-                    response.put("status", "command forwarded to ISCS");
-                    response.put("iscsResponse", iscsResponse);
-                    response.put("rcode", 200); // HTTP status code for OK
+                    response.put("rcode", iscsResponse.getInt("rcode")); // HTTP status code for OK
     
                 } catch (Exception e) {
                     System.out.print(e.getMessage());
@@ -278,7 +271,7 @@ public class OrderService {
                 }
     
                 ServiceUtil.sendResponse(exchange, response);
-                System.exit(0);
+                if(response.getInt("rcode") == 200) System.exit(0);
             }
         }
     }
@@ -288,29 +281,24 @@ public class OrderService {
         public void handle(HttpExchange exchange) throws IOException {
             JSONObject response = new JSONObject();
             if ("POST".equals(exchange.getRequestMethod())) {
-                JSONObject command = new JSONObject();
-                command.put("command", "restart");
-                String restartCommand = command.toString();
-    
-                // URL for ISCS restart endpoint
+               // URL for ISCS restart endpoint
                 String iscsRestartUrl = iscsIp + ":" + iscsPort + "/restart";
     
                 try {
                     // Forwarding the restart command to ISCS
-                    JSONObject iscsResponse = ServiceUtil.sendPostRequest(iscsRestartUrl, restartCommand);
+                    JSONObject iscsResponse = ServiceUtil.sendPostRequest(iscsRestartUrl, "{}");
     
                     // Constructing response for the OrderService restart handler
-                    response.put("command", "restart");
-                    response.put("status", "command forwarded to ISCS");
-                    response.put("iscsResponse", iscsResponse);
-                    response.put("rcode", 200); // HTTP status code for OK
+                    response.put("rcode", iscsResponse.getInt("rcode")); // HTTP status code for OK
     
                 } catch (Exception e) {
+                    System.out.print(e.getMessage());
                     response.put("error", "Failed to forward restart command to ISCS");
                     response.put("rcode", 500); // HTTP status code for Internal Server Error
                 }
     
                 ServiceUtil.sendResponse(exchange, response);
+                if(response.getInt("rcode") == 200) System.exit(0);
             }
         }
     }    

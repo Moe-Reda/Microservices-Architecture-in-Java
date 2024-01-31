@@ -268,7 +268,7 @@ public class ProductService {
                     e.printStackTrace();
                 }
                 ServiceUtil.sendResponse(exchange, responseMap);
-                System.exit(0);
+                if(responseMap.getInt("rcode") == 200) System.exit(0);
             }
         }
     }
@@ -354,15 +354,11 @@ public class ProductService {
         PreparedStatement selectStatement = srcConnection.prepareStatement("SELECT * FROM products");
         ResultSet resultSet = selectStatement.executeQuery();
 
-        System.out.println("The result set: " + resultSet.toString());
-
         // Insert data into user table in save.db database
         while (resultSet.next()) {
             int id = resultSet.getInt("id");
             String name = resultSet.getString("name");
-            System.out.println(name);
             String description = resultSet.getString("description");
-            System.out.println(description);
             float price = resultSet.getFloat("price");
             int quantity = resultSet.getInt("quantity");
 
