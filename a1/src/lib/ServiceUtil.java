@@ -67,6 +67,7 @@ public class ServiceUtil {
         HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
+        
 
         try (OutputStream os = connection.getOutputStream()) {
             byte[] input = postData.getBytes(StandardCharsets.UTF_8);
@@ -103,6 +104,8 @@ public class ServiceUtil {
         }
 
         in.close();
+        System.out.println("The response code: " + String.valueOf(rcode));
+        System.out.println("The reponse body: " + response.toString());
         return bodyToMap(response.toString());
     }
 

@@ -233,11 +233,11 @@ public class ProductService {
                 //Make a response
                 responseMap.put("rcode", "200");
                 result.next();   
-                responseMap.put("id", params);
+                responseMap.put("id", Integer.parseInt(params));
                 responseMap.put("name", result.getString("name"));
                 responseMap.put("description", result.getString("description"));
-                responseMap.put("price", result.getString("price"));
-                responseMap.put("quantity", result.getString("quantity"));
+                responseMap.put("price", result.getFloat("price"));
+                responseMap.put("quantity", result.getInt("quantity"));
             }
     }
 

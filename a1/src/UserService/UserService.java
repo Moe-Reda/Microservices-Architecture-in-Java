@@ -115,7 +115,7 @@ public class UserService {
                     String dataString = ServiceUtil.getRequestBody(exchange);
 
                     System.out.println("The request body: " + dataString);
-                    
+
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
                     if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidUser(dataMap)){
 
@@ -228,7 +228,7 @@ public class UserService {
                 //Make a response
                 responseMap.put("rcode", "200");
                 result.next();   
-                responseMap.put("id", params);
+                responseMap.put("id", Integer.parseInt(params));
                 responseMap.put("username", result.getString("username"));
                 responseMap.put("email", result.getString("email"));
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
