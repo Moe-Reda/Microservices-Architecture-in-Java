@@ -345,7 +345,7 @@ public class UserService {
     public static void transferData(Connection srcConnection ,Connection dstConnection) throws SQLException {
         PreparedStatement selectStatement = srcConnection.prepareStatement("SELECT * FROM users");
         ResultSet resultSet = selectStatement.executeQuery();
-        selectStatement.close();
+        
 
         System.out.println("The result set: " + resultSet.toString());
 
@@ -368,6 +368,7 @@ public class UserService {
         }
 
         resultSet.close();
+        selectStatement.close();
     }
 
 }

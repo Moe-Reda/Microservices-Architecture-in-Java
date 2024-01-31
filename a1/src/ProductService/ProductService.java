@@ -353,7 +353,6 @@ public class ProductService {
     public static void transferData(Connection srcConnection ,Connection dstConnection) throws SQLException {
         PreparedStatement selectStatement = srcConnection.prepareStatement("SELECT * FROM products");
         ResultSet resultSet = selectStatement.executeQuery();
-        selectStatement.close();
 
         System.out.println("The result set: " + resultSet.toString());
 
@@ -379,7 +378,9 @@ public class ProductService {
             insertStatement.close();
         }
 
+        
         resultSet.close();
+        selectStatement.close();
     }
 
 }
