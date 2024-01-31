@@ -260,9 +260,7 @@ public class UserService {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                if(responseMap.getInt("rcode") == 200){
-                    System.exit(0);
-                }
+                System.exit(0);
                 ServiceUtil.sendResponse(exchange, responseMap);
             }
         }
