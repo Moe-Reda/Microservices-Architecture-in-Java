@@ -259,7 +259,7 @@ public class OrderService {
                 String shutdownCommand = command.toString();
     
                 // URL for ISCS shutdown endpoint
-                String iscsShutdownUrl = "http://" + iscsIp + ":" + iscsPort + "/shutdown";
+                String iscsShutdownUrl = iscsIp + ":" + iscsPort + "/shutdown";
     
                 try {
                     // Forwarding the shutdown command to ISCS
