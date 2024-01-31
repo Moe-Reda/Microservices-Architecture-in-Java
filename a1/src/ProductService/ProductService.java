@@ -315,7 +315,6 @@ public class ProductService {
                     e.printStackTrace();
                 }
                 ServiceUtil.sendResponse(exchange, responseMap);
-                System.exit(0);
             }
         }
     }
