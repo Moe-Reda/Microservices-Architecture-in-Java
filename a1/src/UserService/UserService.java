@@ -70,6 +70,12 @@ public class UserService {
         // Set up context for /user request
         server.createContext("/user", new UserHandler());
 
+        // Set up context for /shutdown request
+        server.createContext("/shutdown", new ShutdownHandler());
+
+        // Set up context for /restart request
+        server.createContext("/restart", new RestartHandler());
+
 
         server.setExecutor(null); // creates a default executor
 
