@@ -255,7 +255,7 @@ public class ProductService {
 
                 System.out.println("Data saved successfully, Exiting.");
                 responseMap.put("rcode", 200);
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 // Close connections
@@ -264,10 +264,11 @@ public class ProductService {
                     if (saveConnection != null) saveConnection.close();
                     statement.close();
                     connection.close();
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 ServiceUtil.sendResponse(exchange, responseMap);
+                System.out.println(String.valueOf(responseMap.getInt("rcode")));
                 if(responseMap.getInt("rcode") == 200){ 
                     System.exit(0);
                 }

@@ -248,7 +248,7 @@ public class UserService {
 
                 System.out.println("Data saved successfully, Exiting.");
                 responseMap.put("rcode", 200);
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 // Close connections
@@ -257,7 +257,7 @@ public class UserService {
                     if (saveConnection != null) saveConnection.close();
                     statement.close();
                     connection.close();
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 ServiceUtil.sendResponse(exchange, responseMap);
@@ -297,13 +297,13 @@ public class UserService {
 
                 System.out.println("Data restored successfully.");
                 responseMap.put("rcode", 200);
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 // Close connections
                 try {
                     if (saveConnection != null) saveConnection.close();
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 ServiceUtil.sendResponse(exchange, responseMap);
