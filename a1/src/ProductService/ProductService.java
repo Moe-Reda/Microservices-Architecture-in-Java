@@ -314,8 +314,8 @@ public class ProductService {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-                System.exit(0);
                 ServiceUtil.sendResponse(exchange, responseMap);
+                System.exit(0);
             }
         }
     }

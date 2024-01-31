@@ -258,8 +258,8 @@ public class UserService {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                System.exit(0);
                 ServiceUtil.sendResponse(exchange, responseMap);
+                System.exit(0);
             }
         }
     }
