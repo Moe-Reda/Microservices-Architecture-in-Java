@@ -64,6 +64,8 @@ def format_data(line):
                 'user_id': 1,
                 'quantity': int(line[3]),
             }
+    else:
+        data = {}
     return data
 
 def read_config(config_file):

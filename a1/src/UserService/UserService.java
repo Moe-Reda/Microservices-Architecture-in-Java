@@ -13,6 +13,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -210,6 +211,98 @@ public class UserService {
 
     }
 
+
+    static class ShutdownHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+
+            JSONObject responseMap = new JSONObject();
+            responseMap.put("rcode", "500");
+
+            // JDBC connection parameters for save.db database
+            String saveUrl = "jdbc:sqlite:compiled/ProductService/save.db";
+            Connection saveConnection = null;
+            ResultSet resultSet = null;
+
+            try {
+                // Connect to save.db database (SQLite)
+                saveConnection = DriverManager.getConnection(saveUrl);
+                PreparedStatement createStatement = saveConnection.prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS users (\n"
+                    + "	id integer PRIMARY KEY,\n"
+                    + "	username varchar(255),\n"
+                    + "	email varchar(255),\n"
+                    + "	password varchar(255)\n"
+                    + ");");
+                createStatement.execute();
+                createStatement.close();
+
+                // Retrieve data from user table in source database
+                transferData(connection, saveConnection);
+
+                System.out.println("Data saved successfully, Exiting.");
+                responseMap.put("rcode", 200);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                // Close connections
+                try {
+                    if (resultSet != null) resultSet.close();
+                    if (saveConnection != null) saveConnection.close();
+                    statement.close();
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                ServiceUtil.sendResponse(exchange, responseMap);
+                System.exit(0);
+            }
+        }
+    }
+
+    static class RestartHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+
+            JSONObject responseMap = new JSONObject();
+            responseMap.put("rcode", "500");
+
+            // JDBC connection parameters for save.db database
+            String saveUrl = "jdbc:sqlite:compiled/ProductService/save.db";
+            Connection saveConnection = null;
+
+            try {
+                // Connect to save.db database (SQLite)
+                saveConnection = DriverManager.getConnection(saveUrl);
+                PreparedStatement createStatement = saveConnection.prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS users (\n"
+                    + "	id integer PRIMARY KEY,\n"
+                    + "	username varchar(255),\n"
+                    + "	email varchar(255),\n"
+                    + "	password varchar(255)\n"
+                    + ");");
+                createStatement.execute();
+                createStatement.close();
+
+                // Retrieve data from user table in source database
+                transferData(saveConnection, connection);
+
+                System.out.println("Data restored successfully, Exiting.");
+                responseMap.put("rcode", 200);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                // Close connections
+                try {
+                    if (saveConnection != null) saveConnection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                ServiceUtil.sendResponse(exchange, responseMap);
+            }
+        }
+    }
+
     
     /** 
      * @param responseMap
@@ -235,6 +328,38 @@ public class UserService {
                 byte[] encodedhash = digest.digest(result.getString("password").getBytes(StandardCharsets.UTF_8));
                 responseMap.put("password", encodedhash.toString());
             }
+    }
+
+
+    /** 
+     * @param srcConnection
+     * @param dstConnection
+     * @throws SQLException
+     */
+    public static void transferData(Connection srcConnection ,Connection dstConnection) throws SQLException {
+        PreparedStatement selectStatement = srcConnection.prepareStatement("SELECT * FROM user");
+        ResultSet resultSet = selectStatement.executeQuery();
+        selectStatement.close();
+
+        // Insert data into user table in save.db database
+        while (resultSet.next()) {
+            int id = resultSet.getInt("id");
+            String username = resultSet.getString("username");
+            String email = resultSet.getString("email");
+            String password = resultSet.getString("password");
+
+
+            // Insert data into save.db database (SQLite)
+            PreparedStatement insertStatement = dstConnection.prepareStatement("INSERT INTO user (id, username, email, password) VALUES (?, ?, ?, ?)");
+            insertStatement.setInt(1, id);
+            insertStatement.setString(2, username);
+            insertStatement.setString(3, email);
+            insertStatement.setString(4, password);
+            insertStatement.executeUpdate();
+            insertStatement.close();
+        }
+
+        resultSet.close();
     }
 
 }
