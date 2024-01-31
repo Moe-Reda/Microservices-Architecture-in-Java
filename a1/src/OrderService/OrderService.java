@@ -278,6 +278,7 @@ public class OrderService {
                 }
     
                 ServiceUtil.sendResponse(exchange, response);
+                System.exit(0);
             }
         }
     }

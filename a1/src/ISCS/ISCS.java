@@ -174,6 +174,7 @@ public class ISCS {
                 }
     
                 ServiceUtil.sendResponse(exchange, response);
+                System.exit(0);
             }
         }
     }
