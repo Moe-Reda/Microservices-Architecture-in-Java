@@ -272,6 +272,7 @@ public class OrderService {
                     response.put("rcode", 200); // HTTP status code for OK
     
                 } catch (Exception e) {
+                    System.out.print(e.getMessage());
                     response.put("error", "Failed to forward shutdown command to ISCS");
                     response.put("rcode", 500); // HTTP status code for Internal Server Error
                 }
