@@ -268,7 +268,9 @@ public class ProductService {
                     e.printStackTrace();
                 }
                 ServiceUtil.sendResponse(exchange, responseMap);
-                if(responseMap.getInt("rcode") == 200) System.exit(0);
+                if(responseMap.getInt("rcode") == 200){ 
+                    System.exit(0);
+                }
             }
         }
     }
