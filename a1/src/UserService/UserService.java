@@ -226,7 +226,7 @@ public class UserService {
             responseMap.put("rcode", "500");
 
             // JDBC connection parameters for save.db database
-            String saveUrl = "jdbc:sqlite:compiled/ProductService/save.db";
+            String saveUrl = "jdbc:sqlite:compiled/UserService/save.db";
             Connection saveConnection = null;
             ResultSet resultSet = null;
 
@@ -274,7 +274,7 @@ public class UserService {
             responseMap.put("rcode", "500");
 
             // JDBC connection parameters for save.db database
-            String saveUrl = "jdbc:sqlite:compiled/ProductService/save.db";
+            String saveUrl = "jdbc:sqlite:compiled/UserService/save.db";
             Connection saveConnection = null;
 
             try {
@@ -293,7 +293,7 @@ public class UserService {
                 // Retrieve data from user table in source database
                 transferData(saveConnection, connection);
 
-                System.out.println("Data restored successfully, Exiting.");
+                System.out.println("Data restored successfully.");
                 responseMap.put("rcode", 200);
             } catch (SQLException e) {
                 e.printStackTrace();

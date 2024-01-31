@@ -301,7 +301,7 @@ public class ProductService {
                 // Retrieve data from user table in source database
                 transferData(saveConnection, connection);
 
-                System.out.println("Data restored successfully, Exiting.");
+                System.out.println("Data restored successfully.");
                 responseMap.put("rcode", 200);
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -359,7 +359,9 @@ public class ProductService {
         while (resultSet.next()) {
             int id = resultSet.getInt("id");
             String name = resultSet.getString("name");
+            System.out.println(name);
             String description = resultSet.getString("description");
+            System.out.println(description);
             float price = resultSet.getFloat("price");
             int quantity = resultSet.getInt("quantity");
 
