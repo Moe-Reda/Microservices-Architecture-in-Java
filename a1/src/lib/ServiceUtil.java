@@ -1,4 +1,4 @@
-package docs;
+package src.lib;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,17 +11,20 @@ import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.sun.net.httpserver.HttpExchange;
 
 public class ServiceUtil {
+    
+    /** 
+     * @param exchange
+     * @param responseMap
+     * @throws IOException
+     */
     public static void sendResponse(HttpExchange exchange, JSONObject responseMap) throws IOException {
         System.out.println("The response code sent back is: is: " + responseMap.get("rcode"));
         int rcode = responseMap.getInt("rcode");
@@ -33,6 +36,12 @@ public class ServiceUtil {
         os.close();
     }
 
+    
+    /** 
+     * @param url
+     * @return JSONObject
+     * @throws Exception
+     */
     public static JSONObject sendGetRequest(String url) throws Exception {
         URI apiUri = new URI("http://".concat(url));
         URL apiUrl = apiUri.toURL();
@@ -50,6 +59,14 @@ public class ServiceUtil {
         return responseMap;
     }
 
+
+    
+    /** 
+     * @param url
+     * @param postData
+     * @return JSONObject
+     * @throws Exception
+     */
     public static JSONObject sendPostRequest(String url, String postData) throws Exception {
         URI apiUri = new URI("http://".concat(url));
         URL apiUrl = apiUri.toURL();
@@ -70,6 +87,14 @@ public class ServiceUtil {
         return responseMap;
     }
 
+
+    
+    /** 
+     * @param connection
+     * @param rcode
+     * @return JSONObject
+     * @throws IOException
+     */
     public static JSONObject getResponse(HttpURLConnection connection, int rcode) throws IOException {
         System.out.println("There is an issue here");
         BufferedReader in;
@@ -94,6 +119,12 @@ public class ServiceUtil {
         return bodyToMap(response.toString());
     }
 
+    
+    /** 
+     * @param exchange
+     * @return String
+     * @throws IOException
+     */
     public static String getRequestBody(HttpExchange exchange) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
             StringBuilder requestBody = new StringBuilder();
@@ -105,6 +136,11 @@ public class ServiceUtil {
         }
     }
 
+    
+    /** 
+     * @param exchange
+     * @throws IOException
+     */
     public static void printClientInfo(HttpExchange exchange) throws IOException {
         String clientAddress = exchange.getRemoteAddress().getAddress().toString();
         String requestMethod = exchange.getRequestMethod();
@@ -123,44 +159,47 @@ public class ServiceUtil {
         //System.out.println("Request Body: " + getRequestBody(exchange));
     }
 
+    
+    /** 
+     * @param data
+     * @return JSONObject
+     */
     public static JSONObject bodyToMap(String data) {
-        /* if(data.equals("{}")){
-            return new JSONObject();
-        }
-        String[] intValues = {"id", "quantity", "product_id", "user_id"};
-        System.out.println("Splitting response into key value apirs");
-        String[] keyValueList = data.replace(" ", "")
-                                    .replace("}", "")
-                                    .replace("{", "")
-                                    .replace("\"", "")
-                                    .split(",");
-        JSONObject map = new JSONObject();
-        System.out.println("Building JSON object");
-        for(String keyValue : keyValueList){
-            System.out.println(keyValue);
-            String[] keyValuePair = keyValue.replace("\'", "").split(":");
-            if(Arrays.asList(intValues).contains(keyValuePair[0])){
-                map.put(keyValuePair[0], Integer.parseInt(keyValuePair[1]));
-            } else if(keyValuePair[0].equals("price")){
-                map.put(keyValuePair[0], Float.parseFloat(keyValuePair[1]));
-            }else{
-                map.put(keyValuePair[0], keyValuePair[1]);
-            }
-        }
-        return map; */
         return new JSONObject(data);
     }
 
+    
+    /** 
+     * @param database
+     * @param field
+     * @param value
+     * @param id
+     * @param statement
+     * @throws SQLException
+     */
     public static void updateDB(String database, String field, String value, String id, Statement statement) throws SQLException {
         String command;
         command = String.format("UPDATE " + database + " SET %s = \'%s\' WHERE id = %s", field, value, id);
         statement.execute(command);
     }
 
+    
+    /** 
+     * @param database
+     * @param params
+     * @param statement
+     * @return ResultSet
+     * @throws SQLException
+     */
     public static ResultSet getQuery(String database, String params, Statement statement) throws SQLException {
         return statement.executeQuery("SELECT * FROM " + database + " WHERE id = " + params + ";");
     }
 
+    
+    /** 
+     * @param str
+     * @return boolean
+     */
     public static boolean isNumeric(String str) {
         try {
             Double n = Double.parseDouble(str);
@@ -171,6 +210,11 @@ public class ServiceUtil {
         return true;
     }
 
+    
+    /** 
+     * @param json
+     * @return boolean
+     */
     public static boolean isJSON(String json) {
         try {
             new JSONObject(json);
@@ -180,6 +224,11 @@ public class ServiceUtil {
         return true;
     }
 
+    
+    /** 
+     * @param data
+     * @return boolean
+     */
     public static boolean isValidUser(JSONObject data){
         // Check if all required fields are present
         if (!data.has("command") ||
@@ -235,6 +284,11 @@ public class ServiceUtil {
         return true;
     }
 
+    
+    /** 
+     * @param data
+     * @return boolean
+     */
     public static boolean isValidProduct(JSONObject data) {
         // Check if all required fields are present
         if (!data.has("command") ||
@@ -300,6 +354,11 @@ public class ServiceUtil {
         return true;
     }
 
+    
+    /** 
+     * @param dataMap
+     * @return boolean
+     */
     public static boolean isValidOrder(JSONObject dataMap) {
         // Check if all required fields are present
         if (!dataMap.has("command") || !dataMap.has("product_id") ||

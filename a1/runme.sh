@@ -3,8 +3,8 @@
 # Define paths to directories
 SRC_DIR="src"
 COMPILED_DIR="compiled"
-DOCS_DIR="docs"
-CLASSPATH="$DOCS_DIR/*"
+LIB_DIR="src/lib"
+CLASSPATH="$LIB_DIR/*"
 
 # Ensure the compiled directory exists for each service
 mkdir -p $COMPILED_DIR/ISCS
@@ -16,7 +16,7 @@ mkdir -p $COMPILED_DIR/UserService
 compile() {
     echo "Compiling Java files..."
     # Compile ServiceUtil
-    javac -cp "$CLASSPATH" $DOCS_DIR/ServiceUtil.java -d $DOCS_DIR
+    javac -cp "$CLASSPATH" $LIB_DIR/ServiceUtil.java -d $LIB_DIR
 
     # Compile ISCS
     javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ISCS/ISCS.java -d $COMPILED_DIR/ISCS

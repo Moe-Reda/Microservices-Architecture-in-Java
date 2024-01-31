@@ -2,6 +2,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import src.lib.ServiceUtil;
+
 import org.json.JSONObject;
 
 import java.io.*;
@@ -15,17 +17,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import docs.ServiceUtil;
-
 public class UserService {
     static JSONObject data = new JSONObject();
     static Connection connection = null;
     static Statement statement = null;
 
+    
+    /** 
+     * @param args
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException {
         // create a database connection
         try{
-            connection = DriverManager.getConnection("jdbc:sqlite:user.db");
+            connection = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/user.db");
             statement = connection.createStatement();
             // SQL statement for creating a new table
             String sql = "CREATE TABLE IF NOT EXISTS users (\n"
@@ -202,6 +207,14 @@ public class UserService {
 
     }
 
+    
+    /** 
+     * @param responseMap
+     * @param params
+     * @param statement
+     * @throws SQLException
+     * @throws NoSuchAlgorithmException
+     */
     public static void makeResponse(JSONObject responseMap, String params, Statement statement) throws SQLException, NoSuchAlgorithmException {
             ResultSet result = ServiceUtil.getQuery("users", params, statement);
 

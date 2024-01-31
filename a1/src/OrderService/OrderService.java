@@ -1,18 +1,24 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+
+import src.lib.ServiceUtil;
+
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
-import docs.ServiceUtil;
-
 public class OrderService {
     public static String iscsIp = "";
     public static int iscsPort = -1;
 
+    
+    /** 
+     * @param args
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException {
         //Read config.json
         String path = args[0];
