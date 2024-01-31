@@ -364,7 +364,7 @@ public class ProductService {
 
 
             // Insert data into save.db database (SQLite)
-            PreparedStatement insertStatement = dstConnection.prepareStatement("INSERT INTO products (id, name, description, price, quantity) VALUES (?, ?, ?, ?, ?)");
+            PreparedStatement insertStatement = dstConnection.prepareStatement("INSERT or REPLACE INTO products (id, name, description, price, quantity) VALUES (?, ?, ?, ?, ?)");
             insertStatement.setInt(1, id);
             insertStatement.setString(2, name);
             insertStatement.setString(3, description);

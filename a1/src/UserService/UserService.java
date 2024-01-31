@@ -356,7 +356,7 @@ public class UserService {
 
 
             // Insert data into save.db database (SQLite)
-            PreparedStatement insertStatement = dstConnection.prepareStatement("INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)");
+            PreparedStatement insertStatement = dstConnection.prepareStatement("INSERT or REPLACE INTO users (id, username, email, password) VALUES (?, ?, ?, ?)");
             insertStatement.setInt(1, id);
             insertStatement.setString(2, username);
             insertStatement.setString(3, email);
