@@ -168,9 +168,8 @@ public class ISCS {
                     response.put("error", "Failed to forward shutdown command");
                     response.put("rcode", 500);
                 }
-    
-                ServiceUtil.sendResponse(exchange, response);
                 if(response.getInt("rcode") == 200) System.exit(0);
+                ServiceUtil.sendResponse(exchange, response);
             }
         }
     }

@@ -269,9 +269,8 @@ public class OrderService {
                     response.put("error", "Failed to forward shutdown command to ISCS");
                     response.put("rcode", 500); // HTTP status code for Internal Server Error
                 }
-    
-                ServiceUtil.sendResponse(exchange, response);
                 if(response.getInt("rcode") == 200) System.exit(0);
+                ServiceUtil.sendResponse(exchange, response);
             }
         }
     }

@@ -267,11 +267,11 @@ public class ProductService {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                ServiceUtil.sendResponse(exchange, responseMap);
-                System.out.println(String.valueOf(responseMap.getInt("rcode")));
                 if(responseMap.getInt("rcode") == 200){ 
                     System.exit(0);
                 }
+                ServiceUtil.sendResponse(exchange, responseMap);
+                
             }
         }
     }
