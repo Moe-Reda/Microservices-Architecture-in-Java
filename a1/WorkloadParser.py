@@ -83,7 +83,7 @@ def read_config(config_file):
 def send_request(api_url, request):
     try:
         headers = requests.utils.default_headers()
-        if request[1] in ['info', 'get']:
+        if len(request) > 1 and request[1] in ['info', 'get']:
             print("Sending a GET request to", api_url)
             response = requests.get(api_url + "/" + str(request[2]), headers=headers)
         else:

@@ -32,14 +32,14 @@ compile() {
 # Function to start the User service
 start_user_service() {
     echo "Starting User Service..."
-    touch "compiled/UserService/user.db"
+    [ -f "compiled/UserService/user.db" ] && rm "compiled/UserService/user.db"
     java -cp ".:$COMPILED_DIR/UserService:$CLASSPATH" UserService config.json
 }
 
 # Function to start the Product service
 start_product_service() {
     echo "Starting Product Service..."
-    touch "compiled/ProductService/product.db"
+    [ -f "compiled/ProductService/product.db" ] && rm "compiled/ProductService/product.db"
     java -cp ".:$COMPILED_DIR/ProductService:$CLASSPATH" ProductService config.json
 }
 
