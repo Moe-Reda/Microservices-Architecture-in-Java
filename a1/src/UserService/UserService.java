@@ -343,7 +343,7 @@ public class UserService {
      * @throws SQLException
      */
     public static void transferData(Connection srcConnection ,Connection dstConnection) throws SQLException {
-        PreparedStatement selectStatement = srcConnection.prepareStatement("SELECT * FROM user");
+        PreparedStatement selectStatement = srcConnection.prepareStatement("SELECT * FROM users");
         ResultSet resultSet = selectStatement.executeQuery();
         selectStatement.close();
 
