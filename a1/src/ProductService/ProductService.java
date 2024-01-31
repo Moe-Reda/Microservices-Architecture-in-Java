@@ -309,8 +309,6 @@ public class ProductService {
                 // Close connections
                 try {
                     if (saveConnection != null) saveConnection.close();
-                    statement.close();
-                    connection.close();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
