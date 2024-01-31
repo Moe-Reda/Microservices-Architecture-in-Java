@@ -347,6 +347,8 @@ public class UserService {
         ResultSet resultSet = selectStatement.executeQuery();
         selectStatement.close();
 
+        System.out.println("The result set: " + resultSet.toString());
+
         // Insert data into user table in save.db database
         while (resultSet.next()) {
             int id = resultSet.getInt("id");
