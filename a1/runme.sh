@@ -33,6 +33,7 @@ compile() {
 start_user_service() {
     echo "Starting User Service..."
     [ -f "compiled/UserService/user.db" ] && rm "compiled/UserService/user.db"
+    [ -f "compiled/UserService/order.db" ] && rm "compiled/UserService/order.db"
     java -cp ".:$COMPILED_DIR/UserService:$CLASSPATH" UserService config.json
 }
 
@@ -52,7 +53,6 @@ start_iscs() {
 # Function to start the Order service
 start_order_service() {
     echo "Starting Order Service..."
-    [ -f "compiled/OrderService/order.db" ] && rm "compiled/OrderService/order.db"
     java -cp ".:$COMPILED_DIR/OrderService:$CLASSPATH" OrderService config.json
 }
 
