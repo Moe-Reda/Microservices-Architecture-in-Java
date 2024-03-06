@@ -64,13 +64,25 @@ public class ISCS {
             String userServiceUrl = userIP.concat(":").concat(String.valueOf(userPort)).concat("/user");
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
+            String clientUrl = exchange.getRequestURI().toString();
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a GET request for user");
-                    String clientUrl = exchange.getRequestURI().toString();
-                    int index = clientUrl.indexOf("user") + "user".length();
-                    String params = clientUrl.substring(index);
-                    String url = userServiceUrl.concat(params);
+                    System.out.println("It is a GET request for hamid");
+                    System.out.println("index=");
+                    int index = clientUrl.indexOf("user/purchased");
+                    System.out.println("index=" + String.valueOf(index));
+                    String params = null;
+                    String url = null;
+                    if(index != -1){
+                        System.out.println("It is a GET request for purchased");
+                        index += "user/purchased".length();
+                        params = clientUrl.substring(index);
+                        url = userIP.concat(":").concat(String.valueOf(userPort)).concat("/purchased").concat(params);
+                    } else{
+                        index = clientUrl.indexOf("user") + "user".length();
+                        params = clientUrl.substring(index);
+                        url = userServiceUrl.concat(params);
+                    }
                     responseMap = ServiceUtil.sendGetRequest(url);
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
@@ -80,7 +92,11 @@ public class ISCS {
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
                     System.out.println("It is a POST request for user");
-                    responseMap = ServiceUtil.sendPostRequest(userServiceUrl, ServiceUtil.getRequestBody(exchange));
+                    if(clientUrl.equals("/user")){
+                        responseMap = ServiceUtil.sendPostRequest(userServiceUrl, ServiceUtil.getRequestBody(exchange));
+                    } else{
+                        responseMap = ServiceUtil.sendPostRequest(userIP.concat(":").concat(String.valueOf(userPort)).concat("/purchased"), ServiceUtil.getRequestBody(exchange));
+                    }
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                     ServiceUtil.sendResponse(exchange, responseMap);

@@ -8,18 +8,57 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.UUID;
+
 
 public class OrderService {
     public static String iscsIp = "";
     public static int iscsPort = -1;
 
+    static int uniqueId = 0;
+
+    static int getUniqueId()
+    {
+        return uniqueId++;
+    }
+
     
     /** 
      * @param args
      * @throws IOException
+     * @throws SQLException 
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException {
+        Connection connection = null;
+        try{
+            connection = DriverManager.getConnection("jdbc:sqlite:compiled/OrderService/order.db");
+            Statement statement = connection.createStatement();
+            // SQL statement for creating a new table
+            String sql = "CREATE TABLE IF NOT EXISTS orders (\n"
+            + "	id integer PRIMARY KEY,\n"
+            + "	userid integer,\n"
+            + "	productid integer,\n"
+            + "	quantity integer\n"
+            + ");";
+            statement.execute(sql);
+        } catch(SQLException e){
+          // if the error message is "out of memory",
+          // it probably means no database file is found
+          System.err.println(e.getMessage());
+        } finally{
+            connection.close();
+        }
+
+
+
         //Read config.json
         String path = args[0];
         String jsonString = "";
@@ -67,7 +106,6 @@ public class OrderService {
             //Print client info
             ServiceUtil.printClientInfo(exchange);
 
-
             // Handle POST request for /order
             if("POST".equals(exchange.getRequestMethod())){
                 try {
@@ -112,13 +150,15 @@ public class OrderService {
 
                         //Send a response back to client
                         JSONObject clientResponseMap = new JSONObject();
-                        clientResponseMap.put("id", UUID.randomUUID());
+                        clientResponseMap.put("id", getUniqueId());
                         clientResponseMap.put("product_id", dataMap.getInt("product_id"));
                         clientResponseMap.put("user_id", dataMap.getInt("user_id"));
                         clientResponseMap.put("quantity", dataMap.getInt("quantity"));
                         if(responseMap.get("rcode").equals(200)){
                             clientResponseMap.put("status message", "Success");
                             clientResponseMap.put("rcode", 200);
+
+                            ServiceUtil.sendPostRequest(iscsUserUrl.concat("/purchased"), clientResponseMap.toString());
                         } else if(responseMap.get("rcode").equals(404)){
                             clientResponseMap.put("status message", "Invalid request");
                             clientResponseMap.put("rcode", 404);
@@ -131,7 +171,7 @@ public class OrderService {
                     } else{
                         JSONObject clientResponseMap = new JSONObject();
                         clientResponseMap.put("status message", "Invalid payload");
-                        clientResponseMap.put("rcode", 200);
+                        clientResponseMap.put("rcode", 400);
                         ServiceUtil.sendResponse(exchange, clientResponseMap);
                     }
 
@@ -166,7 +206,14 @@ public class OrderService {
                     String params = clientUrl.substring(index);
 
                     if(!ServiceUtil.isNumeric(params.substring(1))){
-                        responseMap.put("rcode", "400");
+                        index = clientUrl.indexOf("user/purchased");
+                        if(index == -1){
+                            responseMap.put("rcode", "400");
+                        }
+
+                        params = clientUrl.substring(index + "user/purchased".length());
+                        String url = iscsUserUrl.concat("/purchased").concat(params);
+                        responseMap = ServiceUtil.sendGetRequest(url);
                     } else{
                         String url = iscsUserUrl.concat(params);
                         responseMap = ServiceUtil.sendGetRequest(url);
@@ -301,5 +348,6 @@ public class OrderService {
                 if(response.getInt("rcode") == 200) System.exit(0);
             }
         }
-    }    
+    }
+    
 }

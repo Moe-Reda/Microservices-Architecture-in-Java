@@ -52,6 +52,7 @@ start_iscs() {
 # Function to start the Order service
 start_order_service() {
     echo "Starting Order Service..."
+    [ -f "compiled/OrderService/order.db" ] && rm "compiled/OrderService/order.db"
     java -cp ".:$COMPILED_DIR/OrderService:$CLASSPATH" OrderService config.json
 }
 

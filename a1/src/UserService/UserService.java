@@ -41,6 +41,17 @@ public class UserService {
             + "	password varchar(255)\n"
             + ");";
             statement.execute(sql);
+
+            Connection connectionOrder = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/order.db");
+            Statement statementOrder = connectionOrder.createStatement();
+            // SQL statement for creating a new table
+            sql = "CREATE TABLE IF NOT EXISTS orders (\n"
+            + "	id integer PRIMARY KEY,\n"
+            + "	userid integer,\n"
+            + "	productid integer,\n"
+            + "	quantity integer\n"
+            + ");";
+            statementOrder.execute(sql);
         } catch(SQLException e){
           // if the error message is "out of memory",
           // it probably means no database file is found
@@ -75,6 +86,8 @@ public class UserService {
 
         // Set up context for /restart request
         server.createContext("/restart", new RestartHandler());
+
+        server.createContext("/purchased", new PurchasedHandler());
 
 
         server.setExecutor(null); // creates a default executor
@@ -307,7 +320,93 @@ public class UserService {
         }
     }
 
-    
+    static class PurchasedHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException{
+            //Print client info for debugging
+            ServiceUtil.printClientInfo(exchange);
+
+            // Handle POST request for /test
+            JSONObject responseMap = new JSONObject();
+            responseMap.put("rcode", 500);
+
+
+            Connection orderConnection = null;
+            Statement orderStatement = null;
+            try{
+                orderConnection = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/order.db");
+                orderStatement = orderConnection.createStatement();
+            } catch(SQLException e){
+                try {
+                    orderConnection.close();
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+                // if the error message is "out of memory",
+                // it probably means no database file is found
+                System.err.println(e.getMessage());
+            }
+
+
+            if ("GET".equals(exchange.getRequestMethod())){
+                try {
+                    System.out.println("It is a GET request for user");
+
+                    //Get parameter
+                    String clientUrl = exchange.getRequestURI().toString();
+                    int index = clientUrl.indexOf("purchased") + "purchased".length() + 1;
+                    String params = clientUrl.substring(index);
+
+                    //Checking if the request is valid
+                    if(!ServiceUtil.isNumeric(params)){
+                        responseMap.put("rcode", "400");
+                    } else{
+                        //Execute query
+                        makeResponsePurchased(responseMap, params, orderStatement);
+                    }
+                } catch (Exception e) {
+                    ServiceUtil.sendResponse(exchange, responseMap);
+                    System.out.println(e.getMessage());
+                    throw new RuntimeException(e);
+                }
+            } else{
+                try{
+                String dataString = ServiceUtil.getRequestBody(exchange);
+
+                System.out.println("The request body bro: " + dataString);
+
+                JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
+
+
+                //Save order
+                String command = String.format(
+                    "INSERT INTO orders\n" + 
+                    "(id, userid, productid, quantity)\n" +
+                    "VALUES\n" +
+                    "(%s, %s, %s, %s)",
+                    dataMap.get("id").toString(),
+                    dataMap.get("user_id").toString(),
+                    dataMap.get("product_id").toString(),
+                    dataMap.get("quantity").toString()
+                );
+                System.out.println(command);
+                orderStatement.execute(command);
+                } catch(SQLException e){
+                    ServiceUtil.sendResponse(exchange, responseMap);
+                    System.out.println(e.getMessage());
+                    throw new RuntimeException(e);
+                }
+            }
+
+            ServiceUtil.sendResponse(exchange, responseMap);
+
+
+        }
+
+    }
+
+
+
     /** 
      * @param responseMap
      * @param params
@@ -334,6 +433,41 @@ public class UserService {
             }
     }
 
+    /** 
+     * @param responseMap
+     * @param params
+     * @param statement
+     * @throws SQLException
+     * @throws NoSuchAlgorithmException
+     */
+    public static void makeResponsePurchased(JSONObject responseMap, String params, Statement statement) throws SQLException, NoSuchAlgorithmException {
+        ResultSet result = statement.executeQuery("SELECT * FROM orders WHERE userid = " + params + ";");
+
+        //Check if user is found
+        if (!result.isBeforeFirst() ) {    
+            responseMap.put("rcode", "404"); 
+        } else{ 
+            //Make a response
+            responseMap.put("rcode", "200");
+            
+            // Make a response
+        responseMap.put("rcode", "200");
+        
+        // Iterate over the ResultSet to construct the JSON object
+        while (result.next()) {
+            int productId = result.getInt("productid");
+            int quantity = result.getInt("quantity");
+            
+            // Add product id and count to the JSON object
+            if(responseMap.has(String.valueOf(productId))){
+                responseMap.put(String.valueOf(productId), quantity + responseMap.getInt(String.valueOf(productId)));
+            } else {
+                responseMap.put(String.valueOf(productId), quantity);
+            }
+        }
+        
+    }
+}
 
     /** 
      * @param srcConnection
