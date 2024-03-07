@@ -209,11 +209,11 @@ public class OrderService {
                         index = clientUrl.indexOf("user/purchased");
                         if(index == -1){
                             responseMap.put("rcode", "400");
+                        } else{
+                            params = clientUrl.substring(index + "user/purchased".length());
+                            String url = iscsUserUrl.concat("/purchased").concat(params);
+                            responseMap = ServiceUtil.sendGetRequest(url);
                         }
-
-                        params = clientUrl.substring(index + "user/purchased".length());
-                        String url = iscsUserUrl.concat("/purchased").concat(params);
-                        responseMap = ServiceUtil.sendGetRequest(url);
                     } else{
                         String url = iscsUserUrl.concat(params);
                         responseMap = ServiceUtil.sendGetRequest(url);
@@ -229,7 +229,7 @@ public class OrderService {
 
                     String dataString = ServiceUtil.getRequestBody(exchange);
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
-                    if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidUser(dataMap)){
+                    if(ServiceUtil.isJSON(dataString)){
                         responseMap = ServiceUtil.sendPostRequest(iscsUserUrl, dataString);
                     }
                 } catch (Exception e) {
@@ -280,7 +280,7 @@ public class OrderService {
 
                     String dataString = ServiceUtil.getRequestBody(exchange);
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
-                    if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidProduct(dataMap)){
+                    if(ServiceUtil.isJSON(dataString)){
                         responseMap = ServiceUtil.sendPostRequest(iscsproductUrl, dataString);
                     }
                 } catch (Exception e) {

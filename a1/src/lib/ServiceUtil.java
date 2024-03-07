@@ -234,26 +234,32 @@ public class ServiceUtil {
             return false;
         }
         
-        // Check if any required field is blank
+        // Check if any required field is blank or the wrong type
         if (data.getString("command").isEmpty() ||
             !Integer.class.isInstance(data.get("id"))) {
             return false;
         }
 
         if(data.has("username")){
-            if(data.getString("username").isEmpty()){
+            if(!String.class.isInstance(data.get("username"))){
+                return false;
+            } else if(data.getString("username").isEmpty()){
                 return false;
             }
         }
 
         if(data.has("email")){
-            if(data.getString("email").isEmpty()){
+            if(!String.class.isInstance(data.get("email"))){
+                return false;
+            } else if(data.getString("email").isEmpty()){
                 return false;
             }
         }
 
         if(data.has("password")){
-            if(data.getString("password").isEmpty()){
+            if(!String.class.isInstance(data.get("password"))){
+                return false;
+            } else if(data.getString("password").isEmpty()){
                 return false;
             }
         }
@@ -288,20 +294,24 @@ public class ServiceUtil {
             return false;
         }
         
-        // Check if any required field is blank
+        // Check if any required field is blank or the wrong type
         if (data.getString("command").isEmpty() ||
             !Integer.class.isInstance(data.get("id"))) {
             return false;
         }
 
         if(data.has("name")){
-            if(data.getString("name").isEmpty()){
+            if(!String.class.isInstance(data.get("name"))){
+                return false;
+            } else if(data.getString("name").isEmpty()){
                 return false;
             }
         }
 
         if(data.has("description")){
-            if(data.getString("description").isEmpty()){
+            if(!String.class.isInstance(data.get("description"))){
+                return false;
+            } else if(data.getString("description").isEmpty()){
                 return false;
             }
         }
@@ -309,11 +319,15 @@ public class ServiceUtil {
         if(data.has("price")){
             if(!isNumeric(data.get("price").toString())){
                 return false;
+            } else if(data.getDouble("price") < 0){
+                return false;
             }
         }
 
         if(data.has("quantity")){
             if(!Integer.class.isInstance(data.get("quantity"))){
+                return false;
+            } else if(data.getInt("quantity") < 0){
                 return false;
             }
         }

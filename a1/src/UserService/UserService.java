@@ -239,10 +239,17 @@ public class UserService {
             responseMap.put("rcode", "500");
 
             // JDBC connection parameters for save.db database
+            String orderUrl = "jdbc:sqlite:compiled/UserService/order.db";
             String saveUrl = "jdbc:sqlite:compiled/UserService/save.db";
+            String savePurchasedUrl = "jdbc:sqlite:compiled/UserService/savePurchased.db";
+            Connection purchasedConnection = null;
             Connection saveConnection = null;
+            Connection savePurchasedConnection = null;
 
             try {
+                purchasedConnection = DriverManager.getConnection(orderUrl);
+
+
                 // Connect to save.db database (SQLite)
                 saveConnection = DriverManager.getConnection(saveUrl);
                 PreparedStatement createStatement = saveConnection.prepareStatement(
@@ -255,8 +262,20 @@ public class UserService {
                 createStatement.execute();
                 createStatement.close();
 
+                savePurchasedConnection = DriverManager.getConnection(savePurchasedUrl);
+                PreparedStatement createStatementPurchased = savePurchasedConnection.prepareStatement(
+                    "CREATE TABLE IF NOT EXISTS orders (\n"
+                    + "	id integer PRIMARY KEY,\n"
+                    + "	userid integer,\n"
+                    + "	productid integer,\n"
+                    + "	quantity integer\n"
+                    + ");");
+                createStatementPurchased.execute();
+                createStatementPurchased.close();
+
                 // Retrieve data from user table in source database
                 transferData(connection, saveConnection);
+                transferData(purchasedConnection, savePurchasedConnection);
 
                 System.out.println("Data saved successfully, Exiting.");
                 responseMap.put("rcode", 200);
@@ -285,24 +304,22 @@ public class UserService {
             responseMap.put("rcode", "500");
 
             // JDBC connection parameters for save.db database
+            String orderUrl = "jdbc:sqlite:compiled/UserService/order.db";
             String saveUrl = "jdbc:sqlite:compiled/UserService/save.db";
+            String savePurchasedUrl = "jdbc:sqlite:compiled/UserService/savePurchased.db";
+            Connection purchasedConnection = null;
             Connection saveConnection = null;
+            Connection savePurchasedConnection = null;
 
             try {
+                purchasedConnection = DriverManager.getConnection(orderUrl);
                 // Connect to save.db database (SQLite)
                 saveConnection = DriverManager.getConnection(saveUrl);
-                PreparedStatement createStatement = saveConnection.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS users (\n"
-                    + "	id integer PRIMARY KEY,\n"
-                    + "	username varchar(255),\n"
-                    + "	email varchar(255),\n"
-                    + "	password varchar(255)\n"
-                    + ");");
-                createStatement.execute();
-                createStatement.close();
+                savePurchasedConnection = DriverManager.getConnection(savePurchasedUrl);
 
                 // Retrieve data from user table in source database
                 transferData(saveConnection, connection);
+                transferData(savePurchasedConnection, purchasedConnection);
 
                 System.out.println("Data restored successfully.");
                 responseMap.put("rcode", 200);
