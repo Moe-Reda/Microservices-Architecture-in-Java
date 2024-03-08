@@ -287,7 +287,7 @@ public class ServiceUtil {
 
         if(!data.getString("command").equals("update") && (
             !data.has("name") ||
-            !data.has("description") ||
+            (!data.has("description") && (!data.getString("command").equals("delete")))  ||
             !data.has("price") ||
             !data.has("quantity"))
         ){
@@ -365,6 +365,6 @@ public class ServiceUtil {
             return false; // If any field is not an integer, return false
         }
 
-        return !command.isEmpty();
+        return !command.isEmpty() && quantity > 0;
     }
 }

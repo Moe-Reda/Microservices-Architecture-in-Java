@@ -158,7 +158,7 @@ public class UserService {
                                 makeResponse(responseMap, dataMap.get("id").toString(), statement);
                             } else{
                                 //User already exists
-                                responseMap.put("rcode", "401");
+                                responseMap.put("rcode", "409");
                             }
                         }
 
@@ -200,9 +200,9 @@ public class UserService {
                                     resultSet.getString("email").equals(dataMap.get("email")) &&
                                     resultSet.getString("password").equals(dataMap.get("password"))
                                 ){
-                                    makeResponse(responseMap, dataMap.get("id").toString(), statement);
                                     String command = String.format("DELETE FROM users WHERE id = %s;", dataMap.get("id").toString());
                                     statement.execute(command);
+                                    responseMap.put("rcode", "200");
                                 } else{
                                     //Authetication failed
                                     responseMap.put("rcode", "404");
@@ -432,22 +432,30 @@ public class UserService {
      * @throws NoSuchAlgorithmException
      */
     public static void makeResponse(JSONObject responseMap, String params, Statement statement) throws SQLException, NoSuchAlgorithmException {
-            ResultSet result = ServiceUtil.getQuery("users", params, statement);
+        ResultSet result = ServiceUtil.getQuery("users", params, statement);
 
-            //Check if user is found
-            if (!result.isBeforeFirst() ) {    
-                responseMap.put("rcode", "404"); 
-            } else{ 
-                //Make a response
-                responseMap.put("rcode", "200");
-                result.next();   
-                responseMap.put("id", Integer.parseInt(params));
-                responseMap.put("username", result.getString("username"));
-                responseMap.put("email", result.getString("email"));
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] encodedhash = digest.digest(result.getString("password").getBytes(StandardCharsets.UTF_8));
-                responseMap.put("password", encodedhash.toString());
+        //Check if user is found
+        if (!result.isBeforeFirst() ) {
+            responseMap.put("rcode", "404"); 
+        } else{ 
+            //Make a response
+            responseMap.put("rcode", "200");
+            result.next();
+            responseMap.put("id", Integer.parseInt(params));
+            responseMap.put("username", result.getString("username"));
+            responseMap.put("email", result.getString("email"));
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedhash = digest.digest(result.getString("password").getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder(2 * encodedhash.length);
+            for (int i = 0; i < encodedhash.length; i++) {
+            String hex = Integer.toHexString(0xff & encodedhash[i]).toUpperCase();
+            if (hex.length() == 1) {
+                hexString.append('0');
             }
+            hexString.append(hex);
+        }
+            responseMap.put("password", hexString.toString());
+        }
     }
 
     /** 

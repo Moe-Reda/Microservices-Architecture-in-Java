@@ -149,7 +149,7 @@ public class ProductService {
                                 makeResponse(responseMap, dataMap.get("id").toString(), statement);
                             } else{
                                 //Product already exists
-                                responseMap.put("rcode", "401");
+                                responseMap.put("rcode", "409");
                             }
                         }
 
@@ -193,13 +193,12 @@ public class ProductService {
                                 resultSet.next();
                                 //Authenticate
                                 if(resultSet.getString("name").equals(dataMap.get("name").toString()) &&
-                                    resultSet.getString("description").equals(dataMap.get("description").toString()) &&
                                     resultSet.getString("price").equals(dataMap.get("price").toString()) &&
                                     resultSet.getString("quantity").equals(dataMap.get("quantity").toString())
                                 ){
-                                    makeResponse(responseMap, dataMap.get("id").toString(), statement);
                                     String command = String.format("DELETE FROM products WHERE id = %s;", dataMap.get("id").toString());
                                     statement.execute(command);
+                                    responseMap.put("rcode", "200");
                                 } else{
                                     //Authetication failed
                                     responseMap.put("rcode", "401");
@@ -209,6 +208,8 @@ public class ProductService {
                                 responseMap.put("rcode", "404");
                             }
                         }
+                    } else{
+                        responseMap.put("rcode", 400);
                     }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
