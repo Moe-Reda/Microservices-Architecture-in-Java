@@ -275,7 +275,7 @@ public class UserService {
 
                 // Retrieve data from user table in source database
                 transferData(connection, saveConnection);
-                transferData(purchasedConnection, savePurchasedConnection);
+                transferPurchasedData(purchasedConnection, savePurchasedConnection);
 
                 System.out.println("Data saved successfully, Exiting.");
                 responseMap.put("rcode", 200);
@@ -319,7 +319,7 @@ public class UserService {
 
                 // Retrieve data from user table in source database
                 transferData(saveConnection, connection);
-                transferData(savePurchasedConnection, purchasedConnection);
+                transferPurchasedData(savePurchasedConnection, purchasedConnection);
 
                 System.out.println("Data restored successfully.");
                 responseMap.put("rcode", 200);
@@ -518,6 +518,38 @@ public class UserService {
             insertStatement.setString(2, username);
             insertStatement.setString(3, email);
             insertStatement.setString(4, password);
+            insertStatement.executeUpdate();
+            insertStatement.close();
+        }
+
+        resultSet.close();
+        selectStatement.close();
+    }
+
+    /** 
+     * @param srcConnection
+     * @param dstConnection
+     * @throws SQLException
+     */
+    public static void transferPurchasedData(Connection srcConnection ,Connection dstConnection) throws SQLException {
+        PreparedStatement selectStatement = srcConnection.prepareStatement("SELECT * FROM orders");
+        ResultSet resultSet = selectStatement.executeQuery();
+        
+
+        // Insert data into user table in save.db database
+        while (resultSet.next()) {
+            int id = resultSet.getInt("id");
+            int userid = resultSet.getInt("userid");
+            int productid = resultSet.getInt("productid");
+            int quantity = resultSet.getInt("quantity");
+
+
+            // Insert data into save.db database (SQLite)
+            PreparedStatement insertStatement = dstConnection.prepareStatement("INSERT or REPLACE INTO orders (id, userid, productid, quantity) VALUES (?, ?, ?, ?)");
+            insertStatement.setInt(1, id);
+            insertStatement.setInt(2, userid);
+            insertStatement.setInt(3, productid);
+            insertStatement.setInt(4, quantity);
             insertStatement.executeUpdate();
             insertStatement.close();
         }

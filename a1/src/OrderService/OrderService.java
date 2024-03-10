@@ -8,15 +8,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.UUID;
 
 
 public class OrderService {
@@ -37,28 +29,6 @@ public class OrderService {
      * @throws SQLException 
      */
     public static void main(String[] args) throws IOException, SQLException {
-        Connection connection = null;
-        try{
-            connection = DriverManager.getConnection("jdbc:sqlite:compiled/OrderService/order.db");
-            Statement statement = connection.createStatement();
-            // SQL statement for creating a new table
-            String sql = "CREATE TABLE IF NOT EXISTS orders (\n"
-            + "	id integer PRIMARY KEY,\n"
-            + "	userid integer,\n"
-            + "	productid integer,\n"
-            + "	quantity integer\n"
-            + ");";
-            statement.execute(sql);
-        } catch(SQLException e){
-          // if the error message is "out of memory",
-          // it probably means no database file is found
-          System.err.println(e.getMessage());
-        } finally{
-            connection.close();
-        }
-
-
-
         //Read config.json
         String path = args[0];
         String jsonString = "";
