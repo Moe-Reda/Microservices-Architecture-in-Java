@@ -26,6 +26,8 @@ compile() {
     javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/ProductService/ProductService.java -d $COMPILED_DIR/ProductService
     # Compile UserService
     javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/UserService/UserService.java -d $COMPILED_DIR/UserService
+    # Compile Load Balancer
+    javac -cp ".:$COMPILED_DIR:$CLASSPATH" $SRC_DIR/LoadBalancer/LoadBalancer.java -d $COMPILED_DIR/LoadBalancer
     echo "Compilation completed."
 }
 
@@ -37,6 +39,10 @@ start_user_service() {
     java -cp ".:$COMPILED_DIR/UserService:$CLASSPATH" UserService config.json
 }
 
+start_load_balancer() {
+    echo "Starting Load Balancer..."
+    java -cp ".:$COMPILED_DIR/LoadBalancer:$CLASSPATH" LoadBalancer config.json
+}
 # Function to start the Product service
 start_product_service() {
     echo "Starting Product Service..."
@@ -67,6 +73,7 @@ start_workload_parser() {
 case $1 in
     -c) compile;;
     -u) start_user_service;;
+    -l) start_load_balancer;;
     -p) start_product_service;;
     -i) start_iscs;;
     -o) start_order_service;;
@@ -75,6 +82,7 @@ case $1 in
     *) echo "Invalid option. Please use one of the following options:
         -c to compile all code.
         -u to start the User service.
+        -l to start the Load Balancer.
         -p to start the Product service.
         -i to start the ISCS.
         -o to start the Order service.

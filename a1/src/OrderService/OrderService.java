@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 
 import src.lib.ServiceUtil;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -44,30 +45,41 @@ public class OrderService {
         }
 
         //Map representing config.json
+        
+        
+
+
         JSONObject jsonObject = new JSONObject(jsonString);
 
         iscsPort = jsonObject.getJSONObject("InterServiceCommunication").getInt("port");
         iscsIp = jsonObject.getJSONObject("InterServiceCommunication").get("ip").toString();
 
-        int port = jsonObject.getJSONObject("OrderService").getInt("port");
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        JSONArray OrderServices = jsonObject.getJSONArray("OrderService");
+        for (int i = 0; i < OrderServices.length(); i++) {
+            JSONObject service = OrderServices.getJSONObject(i);
+            int port = service.getInt("port");
+            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Set up context for /order POST request
-        server.createContext("/order", new OrderHandler());
+            // Set up context for /order POST request
+            server.createContext("/order", new OrderHandler());
 
-        // Set up context for /user request
-        server.createContext("/user", new UserHandler());
-        // Set up context for /product request
-        server.createContext("/product", new ProductHandler());
+            // Set up context for /user request
+            server.createContext("/user", new UserHandler());
+            // Set up context for /product request
+            server.createContext("/product", new ProductHandler());
 
-        server.createContext("/shutdown", new ShutdownHandler());
-        server.createContext("/restart", new RestartHandler());
+            server.createContext("/shutdown", new ShutdownHandler());
+            server.createContext("/restart", new RestartHandler());
 
-        server.setExecutor(null); // creates a default executor
+            server.setExecutor(null); // creates a default executor
 
-        server.start();
+            server.start();
 
-        System.out.println("Server started on port " + port);
+            System.out.println("Server started on port " + port);  
+        }
+
+
+       
     }
 
     static class OrderHandler implements HttpHandler {
