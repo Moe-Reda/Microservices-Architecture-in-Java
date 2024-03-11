@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 
 import src.lib.ServiceUtil;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -19,20 +20,22 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class UserService {
-    static JSONObject data = new JSONObject();
-    static Connection connection = null;
-    static Statement statement = null;
+    static int currOrderConnection = 0;
+    static int currOrderConnection = 0;
+    static Connection[] userConnections;
+    static Connection[] orderConnections;
 
     
     /** 
      * @param args
      * @throws IOException
+     * @throws SQLException 
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException {
         // create a database connection
         try{
-            connection = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/user.db");
-            statement = connection.createStatement();
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/user.db");
+            Statement statement = connection.createStatement();
             // SQL statement for creating a new table
             String sql = "CREATE TABLE IF NOT EXISTS users (\n"
             + "	id integer PRIMARY KEY,\n"
@@ -41,6 +44,7 @@ public class UserService {
             + "	password varchar(255)\n"
             + ");";
             statement.execute(sql);
+            connection.close();
 
             Connection connectionOrder = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/order.db");
             Statement statementOrder = connectionOrder.createStatement();
@@ -52,6 +56,7 @@ public class UserService {
             + "	quantity integer\n"
             + ");";
             statementOrder.execute(sql);
+            connectionOrder.close();
         } catch(SQLException e){
           // if the error message is "out of memory",
           // it probably means no database file is found
@@ -74,27 +79,40 @@ public class UserService {
 
         //Map representing config.json
         JSONObject jsonObject = new JSONObject(jsonString);
+        
+        JSONArray UserServices = jsonObject.getJSONArray("UserService");
+        int num_services = UserServices.length();
+        Connection[] userConnections = new Connection[num_services];
+        Connection[] orderConnections = new Connection[num_services];
+        for (int i = 0; i < UserServices.length(); i++) {
+            userConnections[i] = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/user.db");
+            orderConnections[i] = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/order.db");
+            JSONObject service = UserServices.getJSONObject(i);
+            int port = service.getInt("port");
 
-        int port = jsonObject.getJSONObject("UserService").getInt("port");
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Set up context for /user request
-        server.createContext("/user", new UserHandler());
+            // Set up context for /user request
+            server.createContext("/user", new UserHandler());
 
-        // Set up context for /shutdown request
-        server.createContext("/shutdown", new ShutdownHandler());
+            // Set up context for /shutdown request
+            server.createContext("/shutdown", new ShutdownHandler());
 
-        // Set up context for /restart request
-        server.createContext("/restart", new RestartHandler());
+            // Set up context for /restart request
+            server.createContext("/restart", new RestartHandler());
 
-        server.createContext("/purchased", new PurchasedHandler());
+            server.createContext("/purchased", new PurchasedHandler());
 
 
-        server.setExecutor(null); // creates a default executor
+            server.setExecutor(null); // creates a default executor
 
-        server.start();
+            server.start();
 
-        System.out.println("Server started on port " + port);
+            System.out.println("Server started on port " + port);
+        }
+
+       
+        
     }
 
     static class UserHandler implements HttpHandler {
@@ -102,6 +120,16 @@ public class UserService {
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
             ServiceUtil.printClientInfo(exchange);
+
+            Connection userConnection = userConnections[currOrderConnection];
+            Statement statement = null;
+            try {
+                statement = userConnection.createStatement();
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            currOrderConnection = (currOrderConnection + 1) % userConnections.length;
 
             // Handle GET request for /user
             JSONObject responseMap = new JSONObject();
@@ -225,7 +253,6 @@ public class UserService {
 
             ServiceUtil.sendResponse(exchange, responseMap);
 
-
         }
 
     }
@@ -239,16 +266,24 @@ public class UserService {
             responseMap.put("rcode", "500");
 
             // JDBC connection parameters for save.db database
-            String orderUrl = "jdbc:sqlite:compiled/UserService/order.db";
             String saveUrl = "jdbc:sqlite:compiled/UserService/save.db";
             String savePurchasedUrl = "jdbc:sqlite:compiled/UserService/savePurchased.db";
             Connection purchasedConnection = null;
             Connection saveConnection = null;
             Connection savePurchasedConnection = null;
+            Connection userConnection = null;
 
             try {
-                purchasedConnection = DriverManager.getConnection(orderUrl);
+            
+                userConnection = userConnections[currOrderConnection];
+                currOrderConnection = (currOrderConnection + 1) % userConnections.length;
 
+
+
+
+
+                purchasedConnection = orderConnections[currOrderConnection];
+                currOrderConnection = (currOrderConnection + 1) % orderConnections.length;
 
                 // Connect to save.db database (SQLite)
                 saveConnection = DriverManager.getConnection(saveUrl);
@@ -274,7 +309,7 @@ public class UserService {
                 createStatementPurchased.close();
 
                 // Retrieve data from user table in source database
-                transferData(connection, saveConnection);
+                transferData(userConnection, saveConnection);
                 transferPurchasedData(purchasedConnection, savePurchasedConnection);
 
                 System.out.println("Data saved successfully, Exiting.");
@@ -285,8 +320,7 @@ public class UserService {
                 // Close connections
                 try {
                     if (saveConnection != null) saveConnection.close();
-                    statement.close();
-                    connection.close();
+                    userConnection.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -304,21 +338,29 @@ public class UserService {
             responseMap.put("rcode", "500");
 
             // JDBC connection parameters for save.db database
-            String orderUrl = "jdbc:sqlite:compiled/UserService/order.db";
             String saveUrl = "jdbc:sqlite:compiled/UserService/save.db";
             String savePurchasedUrl = "jdbc:sqlite:compiled/UserService/savePurchased.db";
             Connection purchasedConnection = null;
             Connection saveConnection = null;
             Connection savePurchasedConnection = null;
+            Connection userConnection = null;
 
             try {
-                purchasedConnection = DriverManager.getConnection(orderUrl);
+                userConnection = userConnections[currOrderConnection];
+                currOrderConnection = (currOrderConnection + 1) % userConnections.length;
+
+
+
+
+
+                purchasedConnection = orderConnections[currOrderConnection];
+                currOrderConnection = (currOrderConnection + 1) % orderConnections.length;
                 // Connect to save.db database (SQLite)
                 saveConnection = DriverManager.getConnection(saveUrl);
                 savePurchasedConnection = DriverManager.getConnection(savePurchasedUrl);
 
                 // Retrieve data from user table in source database
-                transferData(saveConnection, connection);
+                transferData(saveConnection, userConnection);
                 transferPurchasedData(savePurchasedConnection, purchasedConnection);
 
                 System.out.println("Data restored successfully.");
@@ -348,21 +390,15 @@ public class UserService {
             responseMap.put("rcode", 500);
 
 
-            Connection orderConnection = null;
+            Connection orderConnection = userConnections[currOrderConnection];
             Statement orderStatement = null;
-            try{
-                orderConnection = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/order.db");
+            try {
                 orderStatement = orderConnection.createStatement();
-            } catch(SQLException e){
-                try {
-                    orderConnection.close();
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
-                // if the error message is "out of memory",
-                // it probably means no database file is found
-                System.err.println(e.getMessage());
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
+            currOrderConnection = (currOrderConnection + 1) % orderConnections.length;
 
 
             if ("GET".equals(exchange.getRequestMethod())){

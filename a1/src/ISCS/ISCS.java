@@ -4,13 +4,24 @@ import com.sun.net.httpserver.HttpServer;
 
 import src.lib.ServiceUtil;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ISCS {
     static JSONObject jsonObject = new JSONObject();
+
+    static List<String> userIPs = new ArrayList<>();
+    static List<Integer> userPorts = new ArrayList<>(); // List of service URLs
+    static int currentUserServiceIndex = 0;
+
+    static List<String> productIPs = new ArrayList<>();
+    static List<Integer> productPorts = new ArrayList<>(); // List of service URLs
+    static int currentProductServiceIndex = 0;
 
     
     /** 
@@ -34,6 +45,20 @@ public class ISCS {
 
         //Map representing config.json
         jsonObject = new JSONObject(jsonString);
+
+        //Fill the list of user services
+        JSONArray userPortsConfig = jsonObject.getJSONArray("UserService");
+        for (int i = 0; i < userPortsConfig.length(); i++) {
+            userPorts.add(userPortsConfig.getJSONObject(i).getInt("port"));
+            userIPs.add(userPortsConfig.getJSONObject(i).getString("ip"));
+        }
+
+        //Fill the list of product services
+        JSONArray productPortsConfig = jsonObject.getJSONArray("ProductService");
+        for (int i = 0; i < productPortsConfig.length(); i++) {
+            productPorts.add(productPortsConfig.getJSONObject(i).getInt("port"));
+            productIPs.add(productPortsConfig.getJSONObject(i).getString("ip"));
+        }
 
         int port = jsonObject.getJSONObject("InterServiceCommunication").getInt("port");
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -59,8 +84,8 @@ public class ISCS {
             //Print client info for debugging
             ServiceUtil.printClientInfo(exchange);
 
-            String userIP = jsonObject.getJSONObject("UserService").get("ip").toString();
-            int userPort = jsonObject.getJSONObject("UserService").getInt("port");
+            String userIP = userIPs.get(currentUserServiceIndex);
+            int userPort = userPorts.get(currentUserServiceIndex);
             String userServiceUrl = userIP.concat(":").concat(String.valueOf(userPort)).concat("/user");
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
@@ -117,8 +142,8 @@ public class ISCS {
             ServiceUtil.printClientInfo(exchange);
 
             // Handle POST request for /test
-            String productIP = jsonObject.getJSONObject("ProductService").get("ip").toString();
-            int productPort = jsonObject.getJSONObject("ProductService").getInt("port");
+            String productIP = productIPs.get(currentProductServiceIndex);
+            int productPort = productPorts.get(currentProductServiceIndex);
             String productServiceUrl = productIP.concat(":").concat(String.valueOf(productPort)).concat("/product");
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
