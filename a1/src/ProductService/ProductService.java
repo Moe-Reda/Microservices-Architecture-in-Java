@@ -19,20 +19,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class ProductService {
-    static JSONObject jsonObject = new JSONObject();
-    static Connection connection = null;
-    static Statement statement = null;
+    static int currProductConnection = 0;
+    static Connection[] productConnections;
 
     
     /** 
      * @param args
      * @throws IOException
+     * @throws SQLException 
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException {
         // create a database connection
         try{
-            connection = DriverManager.getConnection("jdbc:sqlite:compiled/ProductService/product.db");
-            statement = connection.createStatement();
+            String wal = "pragma journal_mode=wal";
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:compiled/ProductService/product.db");
+            Statement statement = connection.createStatement();
             // SQL statement for creating a new table
             String sql = "CREATE TABLE IF NOT EXISTS products (\n"
             + "	id integer PRIMARY KEY,\n"
@@ -42,6 +43,8 @@ public class ProductService {
             + "	quantity integer\n"
             + ");";
             statement.execute(sql);
+            statement.execute(wal);
+            connection.close();
         } catch(SQLException e){
           // if the error message is "out of memory",
           // it probably means no database file is found
@@ -64,39 +67,57 @@ public class ProductService {
 
         //Map representing config.json
         JSONObject jsonObject = new JSONObject(jsonString);
+        
+        JSONArray ProductServices = jsonObject.getJSONArray("ProductService");
+        int num_services = ProductServices.length();
+        productConnections = new Connection[1];
+        productConnections[0] = DriverManager.getConnection("jdbc:sqlite:compiled/ProductService/product.db");
+        for (int i = 0; i < ProductServices.length(); i++) {
+            //productConnections[i] = DriverManager.getConnection("jdbc:sqlite:compiled/ProductService/product.db");
+            JSONObject service = ProductServices.getJSONObject(i);
+            int port = service.getInt("port");
 
-        int port = jsonObject.getJSONObject("ProductService").getInt("port");
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Set up context for /product request
-        server.createContext("/product", new ProductHandler());
+            // Set up context for /user request
+            server.createContext("/product", new ProductHandler());
 
-        // Set up context for /shutdown request
-        server.createContext("/shutdown", new ShutdownHandler());
+            // Set up context for /shutdown request
+            server.createContext("/shutdown", new ShutdownHandler());
 
-        // Set up context for /restart request
-        server.createContext("/restart", new RestartHandler());
+            // Set up context for /restart request
+            server.createContext("/restart", new RestartHandler());
 
 
-        server.setExecutor(null); // creates a default executor
+            server.setExecutor(null); // creates a default executor
 
-        server.start();
+            server.start();
 
-        System.out.println("Server started on port " + port);
+            System.out.println("Server started on port " + port);
+        }
     }
 
     static class ProductHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            ServiceUtil.printClientInfo(exchange);
+            //ServiceUtil.printClientInfo(exchange);
+
+            Connection productConnection = productConnections[currProductConnection];
+            Statement statement = null;
+            try {
+                statement = productConnection.createStatement();
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            currProductConnection = (currProductConnection + 1) % productConnections.length;
 
             // Handle GET request for /Product
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a GET request for Product");
 
                     //Get parameter
                     String clientUrl = exchange.getRequestURI().toString();
@@ -119,10 +140,7 @@ public class ProductService {
             //Handle POST request for /Product 
             else if("POST".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a POST request for Product");
                     String dataString = ServiceUtil.getRequestBody(exchange);
-
-                    System.out.println("The request body: " + dataString);
 
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
 
@@ -131,7 +149,6 @@ public class ProductService {
 
                         //Handle create
                         if(dataMap.get("command").equals("create")){
-                            System.out.println("Create an entry");
                             if(!ServiceUtil.getQuery("products", dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
                                 //Create a new Product
                                 String command = String.format(
@@ -155,7 +172,6 @@ public class ProductService {
 
                         //Handle update
                         if(dataMap.get("command").equals("update")){
-                            System.out.println("Update an entry");
                             if(ServiceUtil.getQuery("products", dataMap.get("id").toString(), statement).isBeforeFirst()){
                                 
                                 //Check if the name needs to be updated
@@ -187,7 +203,6 @@ public class ProductService {
 
                         //Handle delete
                         if(dataMap.get("command").equals("delete")){
-                            System.out.println("Delete an entry");
                             ResultSet resultSet = ServiceUtil.getQuery("products", dataMap.get("id").toString(), statement);
                             if(resultSet.isBeforeFirst()){
                                 resultSet.next();
@@ -233,11 +248,16 @@ public class ProductService {
             responseMap.put("rcode", "500");
 
             // JDBC connection parameters for save.db database
-            String saveUrl = "jdbc:sqlite:compiled/ProductService/save.db";
+            String saveUrl = "jdbc:sqlite:compiled/UserService/save.db";
             Connection saveConnection = null;
-            ResultSet resultSet = null;
+            Connection productConnection = null;
 
             try {
+                productConnection = productConnections[currProductConnection];
+                currProductConnection = (currProductConnection + 1) % productConnections.length;
+
+
+
                 // Connect to save.db database (SQLite)
                 saveConnection = DriverManager.getConnection(saveUrl);
                 PreparedStatement createStatement = saveConnection.prepareStatement(
@@ -252,7 +272,7 @@ public class ProductService {
                 createStatement.close();
 
                 // Retrieve data from user table in source database
-                transferData(connection, saveConnection);
+                transferData(productConnection, saveConnection);
 
                 System.out.println("Data saved successfully, Exiting.");
                 responseMap.put("rcode", 200);
@@ -261,10 +281,8 @@ public class ProductService {
             } finally {
                 // Close connections
                 try {
-                    if (resultSet != null) resultSet.close();
                     if (saveConnection != null) saveConnection.close();
-                    statement.close();
-                    connection.close();
+                    productConnection.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -282,10 +300,16 @@ public class ProductService {
             responseMap.put("rcode", "500");
 
             // JDBC connection parameters for save.db database
-            String saveUrl = "jdbc:sqlite:compiled/ProductService/save.db";
+            String saveUrl = "jdbc:sqlite:compiled/UserService/save.db";
             Connection saveConnection = null;
+            Connection productConnection = null;
 
             try {
+                productConnection = productConnections[currProductConnection];
+                currProductConnection = (currProductConnection + 1) % productConnections.length;
+
+
+
                 // Connect to save.db database (SQLite)
                 saveConnection = DriverManager.getConnection(saveUrl);
                 PreparedStatement createStatement = saveConnection.prepareStatement(
@@ -300,7 +324,7 @@ public class ProductService {
                 createStatement.close();
 
                 // Retrieve data from user table in source database
-                transferData(saveConnection, connection);
+                transferData(saveConnection, productConnection);
 
                 System.out.println("Data restored successfully.");
                 responseMap.put("rcode", 200);

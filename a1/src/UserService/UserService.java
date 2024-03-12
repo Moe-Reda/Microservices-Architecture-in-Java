@@ -20,7 +20,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class UserService {
-    static int currOrderConnection = 0;
+    static int currUserConnection = 0;
     static int currOrderConnection = 0;
     static Connection[] userConnections;
     static Connection[] orderConnections;
@@ -34,6 +34,9 @@ public class UserService {
     public static void main(String[] args) throws IOException, SQLException {
         // create a database connection
         try{
+            String wal = "pragma journal_mode=wal";
+
+
             Connection connection = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/user.db");
             Statement statement = connection.createStatement();
             // SQL statement for creating a new table
@@ -44,6 +47,7 @@ public class UserService {
             + "	password varchar(255)\n"
             + ");";
             statement.execute(sql);
+            statement.execute(wal);
             connection.close();
 
             Connection connectionOrder = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/order.db");
@@ -56,6 +60,7 @@ public class UserService {
             + "	quantity integer\n"
             + ");";
             statementOrder.execute(sql);
+            statementOrder.execute(wal);
             connectionOrder.close();
         } catch(SQLException e){
           // if the error message is "out of memory",
@@ -82,11 +87,18 @@ public class UserService {
         
         JSONArray UserServices = jsonObject.getJSONArray("UserService");
         int num_services = UserServices.length();
-        Connection[] userConnections = new Connection[num_services];
-        Connection[] orderConnections = new Connection[num_services];
+        userConnections = new Connection[1];
+        orderConnections = new Connection[1];
+        userConnections[0] = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/user.db");
+        orderConnections[0] = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/order.db");
         for (int i = 0; i < UserServices.length(); i++) {
-            userConnections[i] = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/user.db");
-            orderConnections[i] = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/order.db");
+            // int curr = 100 * i;
+            // int end = curr + 100;
+            // for(int j = curr; j < end; j++){
+            //     userConnections[j] = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/user.db");
+            //     orderConnections[j] = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/order.db");
+            // }
+            
             JSONObject service = UserServices.getJSONObject(i);
             int port = service.getInt("port");
 
@@ -119,9 +131,9 @@ public class UserService {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            ServiceUtil.printClientInfo(exchange);
+            //ServiceUtil.printClientInfo(exchange);
 
-            Connection userConnection = userConnections[currOrderConnection];
+            Connection userConnection = userConnections[currUserConnection];
             Statement statement = null;
             try {
                 statement = userConnection.createStatement();
@@ -129,14 +141,13 @@ public class UserService {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            currOrderConnection = (currOrderConnection + 1) % userConnections.length;
+            currUserConnection = (currUserConnection + 1) % userConnections.length;
 
             // Handle GET request for /user
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a GET request for user");
 
                     //Get parameter
                     String clientUrl = exchange.getRequestURI().toString();
@@ -159,17 +170,13 @@ public class UserService {
             //Handle POST request for /user 
             else if("POST".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a POST request for user");
                     String dataString = ServiceUtil.getRequestBody(exchange);
-
-                    System.out.println("The request body: " + dataString);
 
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
                     if(ServiceUtil.isJSON(dataString) && ServiceUtil.isValidUser(dataMap)){
 
                         //Handle create
                         if(dataMap.get("command").equals("create")){
-                            System.out.println("Create an entry");
                             if(!ServiceUtil.getQuery("users", dataMap.get("id").toString().toString(), statement).isBeforeFirst()){
                                 //Create a new User
                                 String command = String.format(
@@ -192,7 +199,6 @@ public class UserService {
 
                         //Handle update
                         if(dataMap.get("command").equals("update")){
-                            System.out.println("Update an entry");
                             if(ServiceUtil.getQuery("users", dataMap.get("id").toString(), statement).isBeforeFirst()){
                                 
                                 //Check if the username needs to be updated
@@ -219,7 +225,6 @@ public class UserService {
 
                         //Handle delete
                         if(dataMap.get("command").equals("delete")){
-                            System.out.println("Delete an entry");
                             ResultSet resultSet = ServiceUtil.getQuery("users", dataMap.get("id").toString(), statement);
                             if(resultSet.isBeforeFirst()){
                                 resultSet.next();
@@ -276,7 +281,7 @@ public class UserService {
             try {
             
                 userConnection = userConnections[currOrderConnection];
-                currOrderConnection = (currOrderConnection + 1) % userConnections.length;
+                currUserConnection = (currUserConnection + 1) % userConnections.length;
 
 
 
@@ -346,8 +351,8 @@ public class UserService {
             Connection userConnection = null;
 
             try {
-                userConnection = userConnections[currOrderConnection];
-                currOrderConnection = (currOrderConnection + 1) % userConnections.length;
+                userConnection = userConnections[currUserConnection];
+                currUserConnection = (currUserConnection + 1) % userConnections.length;
 
 
 
@@ -383,7 +388,7 @@ public class UserService {
         @Override
         public void handle(HttpExchange exchange) throws IOException{
             //Print client info for debugging
-            ServiceUtil.printClientInfo(exchange);
+            //ServiceUtil.printClientInfo(exchange);
 
             // Handle POST request for /test
             JSONObject responseMap = new JSONObject();
@@ -403,7 +408,6 @@ public class UserService {
 
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a GET request for user");
 
                     //Get parameter
                     String clientUrl = exchange.getRequestURI().toString();
@@ -425,8 +429,6 @@ public class UserService {
             } else{
                 try{
                 String dataString = ServiceUtil.getRequestBody(exchange);
-
-                System.out.println("The request body bro: " + dataString);
 
                 JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
 

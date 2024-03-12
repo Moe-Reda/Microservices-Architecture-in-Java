@@ -2,6 +2,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import src.lib.LRUCache;
 import src.lib.ServiceUtil;
 
 import org.json.JSONArray;
@@ -22,6 +23,10 @@ public class ISCS {
     static List<String> productIPs = new ArrayList<>();
     static List<Integer> productPorts = new ArrayList<>(); // List of service URLs
     static int currentProductServiceIndex = 0;
+
+    static int CACHESIZE = 1000;
+    static LRUCache<Integer, String> userCache = new LRUCache<>(CACHESIZE);
+    static LRUCache<Integer, String> productCache = new LRUCache<>(CACHESIZE);
 
     
     /** 
@@ -82,7 +87,7 @@ public class ISCS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            ServiceUtil.printClientInfo(exchange);
+            //ServiceUtil.printClientInfo(exchange);
 
             String userIP = userIPs.get(currentUserServiceIndex);
             int userPort = userPorts.get(currentUserServiceIndex);
@@ -92,23 +97,24 @@ public class ISCS {
             String clientUrl = exchange.getRequestURI().toString();
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a GET request for hamid");
-                    System.out.println("index=");
                     int index = clientUrl.indexOf("user/purchased");
-                    System.out.println("index=" + String.valueOf(index));
                     String params = null;
                     String url = null;
                     if(index != -1){
-                        System.out.println("It is a GET request for purchased");
                         index += "user/purchased".length();
                         params = clientUrl.substring(index);
                         url = userIP.concat(":").concat(String.valueOf(userPort)).concat("/purchased").concat(params);
+                        responseMap = ServiceUtil.sendGetRequest(url);
                     } else{
                         index = clientUrl.indexOf("user") + "user".length();
                         params = clientUrl.substring(index);
-                        url = userServiceUrl.concat(params);
+                        if(userCache.containsKey(Integer.parseInt(params.substring(1)))){
+                            responseMap = ServiceUtil.bodyToMap(userCache.get(Integer.parseInt(params.substring(1))));
+                        } else{
+                            url = userServiceUrl.concat(params);
+                            responseMap = ServiceUtil.sendGetRequest(url);
+                        }
                     }
-                    responseMap = ServiceUtil.sendGetRequest(url);
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                     ServiceUtil.sendResponse(exchange, responseMap);
@@ -116,9 +122,51 @@ public class ISCS {
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a POST request for user");
                     if(clientUrl.equals("/user")){
-                        responseMap = ServiceUtil.sendPostRequest(userServiceUrl, ServiceUtil.getRequestBody(exchange));
+                        String body = ServiceUtil.getRequestBody(exchange);
+                        JSONObject bodyJson = ServiceUtil.bodyToMap(body);
+
+                    
+                        if(bodyJson.has("command") && bodyJson.has("id")){
+                            //Delete from cache if command is delete
+                            if(bodyJson.getString("command").equals("delete")){
+                                userCache.remove(bodyJson.getInt("id"));
+                            } 
+                            
+                            //Send 409 if id already in cache
+                            else if(bodyJson.getString("command").equals("create")){
+                                if(userCache.containsKey(bodyJson.getInt("id"))){
+                                    responseMap.put("rcode", "409");
+                                }
+                            }
+
+                            //update cache on update
+                            else if(bodyJson.getString("command").equals("update")){
+                                if(ServiceUtil.isValidUser(bodyJson)){
+                                    JSONObject updatedUser = ServiceUtil.bodyToMap(userCache.get(bodyJson.getInt("id")));
+                                    //Check if the username needs to be updated
+                                    if(bodyJson.has("username")){
+                                        updatedUser.put("username", bodyJson.getString("username"));
+                                    }
+
+                                    //Check if the email needs to be updated
+                                    if(bodyJson.has("email")){
+                                        updatedUser.put("email", bodyJson.getString("email"));
+                                    }
+
+                                    //Check if the password needs to be updated
+                                    if(bodyJson.has("password")){
+                                        updatedUser.put("password", bodyJson.getString("password"));
+                                    }
+                                    userCache.put(bodyJson.getInt("id"), updatedUser.toString());
+                                } else{
+                                    responseMap.put("rcode", "400");
+                                }
+                            }
+                        }
+
+
+                        if(responseMap.getInt("rcode") == 500) responseMap = ServiceUtil.sendPostRequest(userServiceUrl, body);
                     } else{
                         responseMap = ServiceUtil.sendPostRequest(userIP.concat(":").concat(String.valueOf(userPort)).concat("/purchased"), ServiceUtil.getRequestBody(exchange));
                     }
@@ -127,6 +175,11 @@ public class ISCS {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     throw new RuntimeException(e);
                 }
+            }
+
+
+            if(responseMap.has("id")){
+                userCache.put(responseMap.getInt("id"), responseMap.toString());
             }
             ServiceUtil.sendResponse(exchange, responseMap);
 
@@ -139,7 +192,7 @@ public class ISCS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            ServiceUtil.printClientInfo(exchange);
+            //ServiceUtil.printClientInfo(exchange);
 
             // Handle POST request for /test
             String productIP = productIPs.get(currentProductServiceIndex);
@@ -149,12 +202,15 @@ public class ISCS {
             responseMap.put("rcode", "500");
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a GET request for product");
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
-                    String url = productServiceUrl.concat(params);
-                    responseMap = ServiceUtil.sendGetRequest(url);
+                    if(productCache.containsKey(Integer.parseInt(params.substring(1)))){
+                            responseMap = ServiceUtil.bodyToMap(productCache.get(Integer.parseInt(params.substring(1))));
+                    } else{
+                        String url = productServiceUrl.concat(params);
+                        responseMap = ServiceUtil.sendGetRequest(url);
+                    }
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
@@ -162,8 +218,57 @@ public class ISCS {
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a POST request for product");
-                    responseMap = ServiceUtil.sendPostRequest(productServiceUrl, ServiceUtil.getRequestBody(exchange));
+
+                    String body = ServiceUtil.getRequestBody(exchange);
+                    JSONObject bodyJson = ServiceUtil.bodyToMap(body);
+
+                
+                    if(bodyJson.has("command") && bodyJson.has("id")){
+                        //Delete from cache if command is delete
+                        if(bodyJson.getString("command").equals("delete")){
+                            productCache.remove(bodyJson.getInt("id"));
+                        } 
+                        
+                        //Send 409 if id already in cache
+                        else if(bodyJson.getString("command").equals("create")){
+                            if(productCache.containsKey(bodyJson.getInt("id"))){
+                                responseMap.put("rcode", "409");
+                            }
+                        }
+
+                        //update cache on update
+                        else if(bodyJson.getString("command").equals("update")){
+                            if(ServiceUtil.isValidUser(bodyJson)){
+                                JSONObject updatedUser = ServiceUtil.bodyToMap(productCache.get(bodyJson.getInt("id")));
+                                //Check if the name needs to be updated
+                                if(bodyJson.has("name")){
+                                    updatedUser.put("name", bodyJson.getString("name"));
+                                }
+
+                                //Check if the description needs to be updated
+                                if(bodyJson.has("description")){
+                                    updatedUser.put("description", bodyJson.getString("description"));
+                                }
+
+                                //Check if the price needs to be updated
+                                if(bodyJson.has("price")){
+                                    updatedUser.put("price", bodyJson.getDouble("price"));
+                                }
+
+                                //Check if the quantity needs to be updated
+                                if(bodyJson.has("quantity")){
+                                    updatedUser.put("quantity", bodyJson.getInt("quantity"));
+                                }
+                                productCache.put(bodyJson.getInt("id"), updatedUser.toString());
+                            } else{
+                                responseMap.put("rcode", "400");
+                            }
+                        }
+                    }
+
+
+
+                    if(responseMap.getInt("rcode") == 500) responseMap = ServiceUtil.sendPostRequest(productServiceUrl, body);
                 } catch (Exception e) {
                     ServiceUtil.sendResponse(exchange, responseMap);
                     System.out.println(e.getMessage());
@@ -171,6 +276,9 @@ public class ISCS {
                 }
             }
 
+            if(responseMap.has("id")){
+                productCache.put(responseMap.getInt("id"), responseMap.toString());
+            }
             ServiceUtil.sendResponse(exchange, responseMap);
 
         }

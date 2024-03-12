@@ -1,65 +1,85 @@
 import requests
 import time
-from threading import Thread
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 # Function to send POST requests
 def send_post_request(url, data):
     try:
-        response = requests.post(url, data=data)
-        print("POST Request Status Code:", response.status_code)
+        response = requests.post(url, data=str(data))
+        if response.status_code != 200:
+            print("POST Request Status Code:", response.status_code)
+            import sys
+            sys.exit(32)
     except Exception as e:
         print("Error sending POST request:", e)
+
 
 # Function to send GET requests
 def send_get_request(url):
     try:
         response = requests.get(url)
         if response.status_code != 200:
-          print("GET Request Status Code:", response.status_code)
-          import sys
-          sys.exit(32)
+            print("GET Request Status Code:", response.status_code)
+            import sys
+            sys.exit(32)
     except Exception as e:
         print("Error sending GET request:", e)
 
-# Function to send requests at a specified rate
-def send_requests(url, requests_per_second):
-    count = 0
-    start_timer = time.time()
-    while True:
-        count += 1
+
+# Function to send requests concurrently at a specified rate
+def send_requests_concurrently(url, requests_per_second, duration_seconds):
+    id = 2000
+    with ThreadPoolExecutor(max_workers=requests_per_second) as executor:
+        futures = []
         start_time = time.time()
 
-        # Send POST request with slightly different data each time
-        post_data = {"data": "example_data_" + str(time.time())}
-        #send_post_request(url, post_data)
+        while True:
+            if time.time() - start_time > duration_seconds:
+                break  # Stop sending requests after the specified duration
 
-        # Send GET request
-        send_get_request(url)
+            # Prepare POST data
+            user_post_data = {"command": "create",
+                              "id": id,
+                              "username": "tester",
+                              "email": "test",
+                              "password": "password"}
+            product_post_data = {"command": "create",
+                                 "id": id,
+                                 "name": "tester",
+                                 "description": "test",
+                                 "price": 20,
+                                 "quantity": 1000}
+            # Submit POST request to the executor
+            futures.append(executor.submit(send_post_request, url + "user",
+                                           user_post_data))
+            futures.append(executor.submit(send_post_request, url + "product",
+                                           product_post_data))
 
-        # Calculate time taken for this iteration
-        iteration_time = time.time() - start_time
+            time.sleep(1 / requests_per_second)
 
+            # Submit GET request to the executor
+            futures.append(
+                executor.submit(send_get_request, url + "user/" + str(id)))
+            futures.append(
+                executor.submit(send_get_request, url + "product/" + str(id)))
 
-        # Calculate time to sleep before next iteration to achieve desired requests per second
-        time_to_sleep = max(1/requests_per_second, 1 / requests_per_second - iteration_time)
-        time.sleep(time_to_sleep)
+            id += 1
 
-        # Calculate requests per second
-        elapsed_time = time.time() - start_time
-        actual_requests_per_second = 1 / elapsed_time
-        if count % (5*requests_per_second) == 0:
-          print("Requests per second:", actual_requests_per_second, "sleep time:", time_to_sleep)
+            # Adjust sleep time to control request rate
+            #time.sleep(1 / requests_per_second)
 
-        if count == requests_per_second:
-            break
-    end_timer = time.time()
-    elapsed_time = end_timer - start_timer
-    print("Processed " + str(requests_per_second) + " requests in " + str(elapsed_time) + "seconds.")
+        # Wait for all submitted futures to complete
+        for future in as_completed(futures):
+            pass
+
+        print(
+            f"Processed {len(futures)} requests in {duration_seconds} seconds.")
+
 
 # Main function
 if __name__ == "__main__":
-    url = "http://127.0.0.1:8000/user/1000"  # Replace with your URL
-    requests_per_second = 5  # Replace with desired requests per second
-    # Start a thread to send requests repeatedly
-    t = Thread(target=send_requests, args=(url, requests_per_second))
-    t.start()
+    url = "http://127.0.0.1:8000/"  # Replace with your URL
+    requests_per_second = 100  # Adjusted for demonstration purposes
+    duration_seconds = 1  # Duration to send requests for
+    send_requests_concurrently(url, requests_per_second, duration_seconds)

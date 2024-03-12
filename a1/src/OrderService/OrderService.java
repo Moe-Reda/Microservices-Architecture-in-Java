@@ -178,7 +178,7 @@ public class OrderService {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            ServiceUtil.printClientInfo(exchange);
+            //ServiceUtil.printClientInfo(exchange);
 
             // Handle POST request for /test
             String iscsUserUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/user");
@@ -186,7 +186,6 @@ public class OrderService {
             responseMap.put("rcode", 500);
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a GET request for user");
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("user") + "user".length();
                     String params = clientUrl.substring(index);
@@ -211,7 +210,6 @@ public class OrderService {
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a POST request for user");
 
                     String dataString = ServiceUtil.getRequestBody(exchange);
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
@@ -236,7 +234,7 @@ public class OrderService {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info for debugging
-            ServiceUtil.printClientInfo(exchange);
+            //ServiceUtil.printClientInfo(exchange);
 
             // Handle POST request for /test
             String iscsproductUrl = iscsIp.concat(":").concat(String.valueOf(iscsPort)).concat("/product");
@@ -244,7 +242,6 @@ public class OrderService {
             responseMap.put("rcode", 500);
             if ("GET".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a GET request for product");
                     String clientUrl = exchange.getRequestURI().toString();
                     int index = clientUrl.indexOf("product") + "product".length();
                     String params = clientUrl.substring(index);
@@ -262,7 +259,6 @@ public class OrderService {
                 }
             } else if("POST".equals(exchange.getRequestMethod())){
                 try {
-                    System.out.println("It is a POST request for product");
 
                     String dataString = ServiceUtil.getRequestBody(exchange);
                     JSONObject dataMap = ServiceUtil.bodyToMap(dataString);
