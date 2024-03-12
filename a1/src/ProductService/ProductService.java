@@ -31,7 +31,10 @@ public class ProductService {
     public static void main(String[] args) throws IOException, SQLException {
         // create a database connection
         try{
-            String wal = "pragma journal_mode=wal";
+            String wal = "pragma journal_mode=wal;\n"+
+                        "PRAGMA synchronous=NORMAL;\n"+
+                        "PRAGMA cache_size=-64000;\n"+
+                        "ATTACH DATABASE ':memory:' AS memdb;";
             Connection connection = DriverManager.getConnection("jdbc:sqlite:compiled/ProductService/product.db");
             Statement statement = connection.createStatement();
             // SQL statement for creating a new table
@@ -41,7 +44,8 @@ public class ProductService {
             + "	description varchar(255),\n"
             + "	price float,\n"
             + "	quantity integer\n"
-            + ");";
+            + ");\n"
+            + "CREATE INDEX idx_id ON products(id);\n";
             statement.execute(sql);
             statement.execute(wal);
             connection.close();

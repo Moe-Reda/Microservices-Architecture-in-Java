@@ -10,6 +10,8 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+
 import src.lib.ServiceUtil;
 
 
@@ -17,7 +19,7 @@ import src.lib.ServiceUtil;
 public class LoadBalancer {
     private static final int LB_PORT = 8000; // Port for the load balancer
     private static List<Integer> orderServicePorts = new ArrayList<>();
-    private static int currentIndex = 0;
+    private static volatile int currentIndex = 0;
 
     public static void main(String[] args) throws IOException {
         // Load configuration
@@ -59,7 +61,7 @@ public class LoadBalancer {
             }
         });
 
-        server.setExecutor(null); // creates a default executor
+        server.setExecutor(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())); // creates a default executor // creates a default executor
         server.start();
         System.out.println("Load Balancer started on port " + LB_PORT);
     }

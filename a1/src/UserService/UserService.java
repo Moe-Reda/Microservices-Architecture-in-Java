@@ -34,7 +34,10 @@ public class UserService {
     public static void main(String[] args) throws IOException, SQLException {
         // create a database connection
         try{
-            String wal = "pragma journal_mode=wal";
+            String wal = "pragma journal_mode=wal;\n"+
+                        "PRAGMA synchronous=NORMAL;\n"+
+                        "PRAGMA cache_size=-64000;\n"+
+                        "ATTACH DATABASE ':memory:' AS memdb;";
 
 
             Connection connection = DriverManager.getConnection("jdbc:sqlite:compiled/UserService/user.db");
@@ -45,7 +48,8 @@ public class UserService {
             + "	username varchar(255),\n"
             + "	email varchar(255),\n"
             + "	password varchar(255)\n"
-            + ");";
+            + ");\n"
+            + "CREATE INDEX idx_id ON users(id);\n";
             statement.execute(sql);
             statement.execute(wal);
             connection.close();
@@ -395,7 +399,7 @@ public class UserService {
             responseMap.put("rcode", 500);
 
 
-            Connection orderConnection = userConnections[currOrderConnection];
+            Connection orderConnection = orderConnections[currOrderConnection];
             Statement orderStatement = null;
             try {
                 orderStatement = orderConnection.createStatement();
@@ -444,7 +448,6 @@ public class UserService {
                     dataMap.get("product_id").toString(),
                     dataMap.get("quantity").toString()
                 );
-                System.out.println(command);
                 orderStatement.execute(command);
                 } catch(SQLException e){
                     ServiceUtil.sendResponse(exchange, responseMap);

@@ -12,17 +12,19 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ISCS {
     static JSONObject jsonObject = new JSONObject();
 
     static List<String> userIPs = new ArrayList<>();
     static List<Integer> userPorts = new ArrayList<>(); // List of service URLs
-    static int currentUserServiceIndex = 0;
+    static volatile AtomicInteger currentUserServiceIndex = new AtomicInteger(0);
 
     static List<String> productIPs = new ArrayList<>();
     static List<Integer> productPorts = new ArrayList<>(); // List of service URLs
-    static int currentProductServiceIndex = 0;
+    static volatile AtomicInteger currentProductServiceIndex = new AtomicInteger(0);
 
     static int CACHESIZE = 1000;
     static LRUCache<Integer, String> userCache = new LRUCache<>(CACHESIZE);
@@ -76,7 +78,7 @@ public class ISCS {
         server.createContext("/shutdown", new ShutdownHandler());
         server.createContext("/restart", new RestartHandler());
 
-        server.setExecutor(null); // creates a default executor
+        server.setExecutor(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())); // creates a default executor
 
         server.start();
 
@@ -89,8 +91,9 @@ public class ISCS {
             //Print client info for debugging
             //ServiceUtil.printClientInfo(exchange);
 
-            String userIP = userIPs.get(currentUserServiceIndex);
-            int userPort = userPorts.get(currentUserServiceIndex);
+            String userIP = userIPs.get(currentUserServiceIndex.get() % userPorts.size());
+            int userPort = userPorts.get(currentUserServiceIndex.get() % userPorts.size());
+            currentUserServiceIndex.getAndIncrement();
             String userServiceUrl = userIP.concat(":").concat(String.valueOf(userPort)).concat("/user");
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
@@ -195,8 +198,9 @@ public class ISCS {
             //ServiceUtil.printClientInfo(exchange);
 
             // Handle POST request for /test
-            String productIP = productIPs.get(currentProductServiceIndex);
-            int productPort = productPorts.get(currentProductServiceIndex);
+            String productIP = productIPs.get(currentProductServiceIndex.get() % productPorts.size());
+            int productPort = productPorts.get(currentProductServiceIndex.get() % productPorts.size());
+            currentProductServiceIndex.getAndIncrement();
             String productServiceUrl = productIP.concat(":").concat(String.valueOf(productPort)).concat("/product");
             JSONObject responseMap = new JSONObject();
             responseMap.put("rcode", "500");
