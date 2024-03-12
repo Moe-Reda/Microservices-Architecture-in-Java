@@ -86,7 +86,7 @@ public class OrderService {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             //Print client info
-            ServiceUtil.printClientInfo(exchange);
+            //ServiceUtil.printClientInfo(exchange);
 
             // Handle POST request for /order
             if("POST".equals(exchange.getRequestMethod())){
