@@ -113,9 +113,11 @@ public class ISCS {
                         params = clientUrl.substring(index);
                         if(userCache.containsKey(Integer.parseInt(params.substring(1)))){
                             responseMap = ServiceUtil.bodyToMap(userCache.get(Integer.parseInt(params.substring(1))));
+                            System.out.println("cache hit");
                         } else{
                             url = userServiceUrl.concat(params);
                             responseMap = ServiceUtil.sendGetRequest(url);
+                            System.out.println("cache miss");
                         }
                     }
                 } catch (Exception e) {

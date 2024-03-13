@@ -14,12 +14,15 @@ import java.util.concurrent.Executors;
 
 import src.lib.ServiceUtil;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 
 
 public class LoadBalancer {
     private static final int LB_PORT = 8000; // Port for the load balancer
     private static List<Integer> orderServicePorts = new ArrayList<>();
-    private static volatile int currentIndex = 0;
+    static volatile AtomicInteger currentIndex = new AtomicInteger(0);
+    static int ISCSport;
 
     public static void main(String[] args) throws IOException {
         // Load configuration
@@ -28,7 +31,7 @@ public class LoadBalancer {
         // Initialize the LRU Cache
 
         HttpServer server = HttpServer.create(new InetSocketAddress(LB_PORT), 0);
-        server.createContext("/", new HttpHandler() {
+        server.createContext("/order", new HttpHandler() {
             @Override
             public void handle(HttpExchange exchange) throws IOException {
                 String requestMethod = exchange.getRequestMethod();
@@ -37,8 +40,8 @@ public class LoadBalancer {
 
 
                 // Forward the request for GET and other methods
-                int port = orderServicePorts.get(currentIndex);
-                currentIndex = (currentIndex + 1) % orderServicePorts.size();
+                int port = orderServicePorts.get(currentIndex.get() % orderServicePorts.size());
+                currentIndex.getAndIncrement();
                 String targetUrl = "127.0.0.1:" + port + path;
 
                 
@@ -61,7 +64,69 @@ public class LoadBalancer {
             }
         });
 
-        server.setExecutor(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())); // creates a default executor // creates a default executor
+        server.createContext("/user", new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+                String requestMethod = exchange.getRequestMethod();
+                String path = exchange.getRequestURI().toString();
+                JSONObject response = null;
+
+
+                // Forward the request for GET and other methods
+                String targetUrl = "127.0.0.1:" + ISCSport + path;
+
+                
+                try {
+                    if ("GET".equals(requestMethod)){
+                        response = ServiceUtil.sendGetRequest(targetUrl);
+                    }
+                    else{
+                        response = ServiceUtil.sendPostRequest(targetUrl, ServiceUtil.getRequestBody(exchange));
+                    }
+                } catch (Exception e) {
+                    response = new JSONObject();
+                    response.put("rcode", 500);
+                    e.printStackTrace();
+                }
+
+
+                // Send response back to client
+                ServiceUtil.sendResponse(exchange, response);
+            }
+        });
+
+        server.createContext("/product", new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+                String requestMethod = exchange.getRequestMethod();
+                String path = exchange.getRequestURI().toString();
+                JSONObject response = null;
+
+
+                // Forward the request for GET and other methods
+                String targetUrl = "127.0.0.1:" + ISCSport + path;
+
+                
+                try {
+                    if ("GET".equals(requestMethod)){
+                        response = ServiceUtil.sendGetRequest(targetUrl);
+                    }
+                    else{
+                        response = ServiceUtil.sendPostRequest(targetUrl, ServiceUtil.getRequestBody(exchange));
+                    }
+                } catch (Exception e) {
+                    response = new JSONObject();
+                    response.put("rcode", 500);
+                    e.printStackTrace();
+                }
+
+
+                // Send response back to client
+                ServiceUtil.sendResponse(exchange, response);
+            }
+        });
+
+        server.setExecutor(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2)); // creates a default executor // creates a default executor
         server.start();
         System.out.println("Load Balancer started on port " + LB_PORT);
     }
@@ -75,5 +140,8 @@ public class LoadBalancer {
         for (int i = 0; i < ports.length(); i++) {
             orderServicePorts.add(ports.getJSONObject(i).getInt("port"));
         }
+
+        ISCSport = jsonObject.getJSONObject("InterServiceCommunication").getInt("port");
     }
 }
+
