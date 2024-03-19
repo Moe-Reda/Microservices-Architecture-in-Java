@@ -1,3 +1,0 @@
-USER create 1 himothy him@gmail.com himmy
-PRODUCT create 5 monkey goofyAndSilly 53.99 1
-shutdown

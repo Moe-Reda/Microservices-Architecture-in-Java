@@ -1,0 +1,6 @@
+PRODUCT create 5 terma goofyAndSilly 53.99 2
+USER create 1 AKH cee@gmail.com brozer
+USER create 2 AKH cee@gmail.com brozer
+ORDER place 5 1
+ORDER place 5 2 1
+ORDER place 5 2 1

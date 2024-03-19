@@ -1,3 +1,0 @@
-restart
-USER get 1
-PRODUCT info 5

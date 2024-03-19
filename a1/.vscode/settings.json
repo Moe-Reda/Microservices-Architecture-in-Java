@@ -1,8 +1,0 @@
-{
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar",
-        "docs/http-2.2.1.jar",
-        "docs/json-20231013.jar",
-        "docs/sqlite-jdbc-3.45.0.0.jar"
-    ]
-}

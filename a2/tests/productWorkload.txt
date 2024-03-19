@@ -1,0 +1,4 @@
+PRODUCT create 5 terma goofyAndSilly 53.99 1
+PRODUCT info 5
+PRODUCT update 5 price:67.88 name:zouk
+PRODUCT delete 5 zouk goofyAndSilly 67.88 1
