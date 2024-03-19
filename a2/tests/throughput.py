@@ -4,7 +4,7 @@ import time
 
 BASE_URL = "http://127.0.0.1:8000"
 NUM_REQUESTS = 2000
-CONCURRENT_THREADS = 8
+CONCURRENT_THREADS = 100
 
 def post_request(index):
     """Send a POST request to create a user."""
